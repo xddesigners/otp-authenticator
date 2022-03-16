@@ -1,0 +1,10 @@
+{
+  "TwilioRegister.NEXT": "Volgende",
+  "TwilioRegister.BACK": "Vorige",
+  "TwilioRegister.INTRO": "Registreer het mobiele nummer welke je wilt gebruiken voor authenticatie.",
+  "TwilioRegister.HOW_TO_USE": "Hoe gebruik je een authenticator app?",
+  "TwilioVerify.NEXT": "Volgende",
+  "TwilioVerify.HOW_TO_USE": "Hoe gebruik je een authenticator app?",
+  "TwilioVerify.VERIFY": "Gebruik de code welke is verstuurd naar",
+  "TwilioVerify.ENTER_CODE": "Voor een {length}-cijferige code in"
+}

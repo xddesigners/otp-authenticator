@@ -1,0 +1,72 @@
+{
+  "name": "xddesigners-twilio-authenticator",
+  "main": "./client/src/boot/index.js",
+  "author": "XD designers",
+  "engines": {
+    "node": ">=10.x"
+  },
+  "scripts": {
+    "build": "yarn && yarn lint && yarn test && NODE_ENV=production webpack -p --bail --progress",
+    "dev": "NODE_ENV=development webpack --progress",
+    "watch": "NODE_ENV=development webpack --watch --progress",
+    "css": "WEBPACK_CHILD=css npm run build",
+    "test": "jest",
+    "coverage": "jest --passWithNoTests --coverage",
+    "lock": "npm-shrinkwrap --dev",
+    "lint": "eslint client/src && sass-lint client/src",
+    "lint-js": "eslint client/src",
+    "lint-js-fix": "eslint client/src --fix",
+    "lint-sass": "sass-lint client/src"
+  },
+  "dependencies": {
+    "@silverstripe/react-injector": "^0.1.2",
+    "classnames": "^2.2.6",
+    "prop-types": "^15.7.2",
+    "qrcode.react": "^0.9.3",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
+    "react-phone-input-2": "^2.15.0"
+  },
+  "devDependencies": {
+    "@silverstripe/eslint-config": "^0.0.6",
+    "@silverstripe/webpack-config": "^1.3.0",
+    "babel-jest": "^23.6.0",
+    "copy-webpack-plugin": "^4",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.10.0",
+    "jest-cli": "^23.6.0"
+  },
+  "babel": {
+    "presets": [
+      "env",
+      "react"
+    ],
+    "plugins": [
+      "transform-object-rest-spread"
+    ]
+  },
+  "jest": {
+    "roots": [
+      "client/src"
+    ],
+    "modulePaths": [
+      "client/src"
+    ],
+    "collectCoverageFrom": [
+      "**/*.{js,jsx}",
+      "!**/node_modules/**",
+      "!**/boot/**",
+      "!**/bundles/**",
+      "!**/legacy/**",
+      "!**/vendor/**",
+      "!**/*-test.{js,jsx}",
+      "!**/*-story.{js,jsx}"
+    ],
+    "testMatch": [
+      "**/tests/**/*-test.js?(x)"
+    ],
+    "transform": {
+      ".*": "babel-jest"
+    }
+  }
+}

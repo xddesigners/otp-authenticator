@@ -1,0 +1,13 @@
+en:
+  XD\Twilio\Method:
+    NAME: 'SMS code'
+    NOT_CONFIGURED: 'This method has not been configured yet.'
+  XD\Twilio\RegisterHandler:
+    DESCRIPTION: 'Authenticate with an code sent to your mobile phone'
+    INVALID_CODE: 'Provided code was not valid'
+    SUPPORT_LINK_DESCRIPTION: 'How to use an SMS code.'
+    INVALID_PHONE: 'Provided phone number was not valid'
+  XD\Twilio\VerifyHandler:
+    INVALID_CODE: 'Invalid code'
+  XD\Twilio\LoginHandlerExtension:
+    COULD_NOT_SEND_CODE: 'Could not send code'

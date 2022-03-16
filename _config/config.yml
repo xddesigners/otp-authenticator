@@ -1,0 +1,14 @@
+---
+Name: twilioauthenticatorconfig
+---
+SilverStripe\MFA\Service\MethodRegistry:
+  methods:
+    twilio: XD\Twilio\Method
+
+SilverStripe\Security\Member:
+  extensions:
+    - XD\Twilio\MemberExtension
+
+SilverStripe\MFA\Authenticator\LoginHandler:
+  extensions:
+    - XD\Twilio\LoginHandlerExtension

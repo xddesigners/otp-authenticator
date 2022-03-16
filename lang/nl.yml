@@ -1,0 +1,13 @@
+nl:
+  XD\Twilio\Method:
+    NAME: 'SMS code'
+    NOT_CONFIGURED: 'Deze methode is nog niet ingesteld'
+  XD\Twilio\RegisterHandler:
+    DESCRIPTION: 'Log in met een code welke naar uw mobiele telefoon wordt gestuurd'
+    INVALID_CODE: 'Ingevoerde code is niet geldig'
+    SUPPORT_LINK_DESCRIPTION: 'Hoe gebruik je een SMS code.'
+    INVALID_PHONE: 'Het telefoon nummer is ongeldig'
+  XD\Twilio\VerifyHandler:
+    INVALID_CODE: 'Ongeldige code'
+  XD\Twilio\LoginHandlerExtension:
+    COULD_NOT_SEND_CODE: 'De code kon niet verstuurd worden'
