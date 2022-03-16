@@ -12,6 +12,8 @@ For more information about Twilio Verify (Authy), see [Twilio](https://www.twili
 * PHP ^7.1
 * SilverStripe ^4.1
 * silverstripe/mfa: ^4.0
+* twilio/sdk: "^6.35"
+* giggsey/libphonenumber-for-php: "^8.12"
 
 ## Installation
 
