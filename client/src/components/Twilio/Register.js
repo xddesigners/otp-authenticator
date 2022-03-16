@@ -4,6 +4,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { inject } from 'lib/Injector'; // eslint-disable-line
 import PhoneInput from 'react-phone-input-2';
+import api from 'lib/api'; // eslint-disable-line
 
 const VIEWS = {
   SET_PHONE: 'SET_PHONE',
@@ -17,18 +18,14 @@ const VIEWS = {
 class Register extends Component {
   constructor(props) {
     super(props);
+    const { error, obfuscatedPhone, defaultCountry } = props;
 
-    let error = props.error;
     // Set the view to validate code or set phone
-    let view = VIEWS.SET_PHONE;
-    if ((error && error === VIEWS.VALIDATE) || props.phone) {
-      view = VIEWS.VALIDATE;
-      window.obfuscatedPhone = props.phone;
-      error = null;
-    }
+    const view = obfuscatedPhone ? VIEWS.VALIDATE : VIEWS.SET_PHONE;
 
     this.state = {
-      country: props.defaultCountry,
+      country: defaultCountry,
+      obfuscatedPhone,
       phone: '',
       view,
       error,
@@ -57,13 +54,6 @@ class Register extends Component {
       phone: formattedValue,
       country: country.countryCode
     });
-
-    // Store obfuscatedPhone in the window to provide feedback for the verify view
-    window.obfuscatedPhone = this.obfuscatePhone(formattedValue);
-  }
-
-  obfuscatePhone(phone) {
-      return `${phone.substr(0, 5).trim()} ****** ${phone.substr(-2).trim()}`;
   }
 
   /**
@@ -88,7 +78,21 @@ class Register extends Component {
    */
   handleNext() {
     const { phone, country } = this.state;
-    this.props.onCompleteRegistration({ phone, country });
+    const body = JSON.stringify({ phone, country });
+    api('mfa/registerphone', 'POST', body).then(response => response.json().then(result => {
+      const { error, obfuscatedPhone, view } = result;
+      if (error && error.length) {
+        this.setState({
+          error
+        });
+      } else {
+        this.setState({
+          view,
+          obfuscatedPhone,
+          error: null
+        });
+      }
+    }));
   }
 
   /**
@@ -170,7 +174,7 @@ class Register extends Component {
 
           <div className="mfa-totp__scan-code">
             <div className="mfa-totp__scan-left">
-              <label htmlFor="phone" className="control-label">phone</label>
+              <label htmlFor="phone" className="control-label">{ i18n._t('TwilioRegister.PHONE', 'Mobile phone') }</label>
               <PhoneInput
                 country={country}
                 value={phone}
@@ -244,7 +248,7 @@ class Register extends Component {
    * @returns {HTMLElement}
    */
   renderValidateCodeScreen() {
-    const { error, view } = this.state;
+    const { error, view, obfuscatedPhone } = this.state;
     const { TwilioVerifyComponent, onCompleteRegistration, errors } = this.props;
 
     if (view !== VIEWS.VALIDATE || errors.length) {
@@ -258,7 +262,7 @@ class Register extends Component {
       ...this.props,
       // Override the error prop to come from the state instead of props
       error,
-      phone: window.obfuscatedPhone,
+      obfuscatedPhone,
       moreOptionsControl: this.renderBackButtonForVerify(),
       // Renaming registration callback so it fits in the Verify context
       onCompleteVerification: onCompleteRegistration,

@@ -13,6 +13,7 @@ if (typeof(ss) === 'undefined' || typeof(ss.i18n) === 'undefined') {
     "TwilioVerify.NEXT": "Next",
     "TwilioVerify.HOW_TO_USE": "How to use authenticator app.",
     "TwilioVerify.VERIFY": "Use the code that was sent to",
-    "TwilioVerify.ENTER_CODE": "Enter {length}-digit code"
+    "TwilioVerify.ENTER_CODE": "Enter {length}-digit code",
+    "TwilioRegister.PHONE": "Mobile phone"
 });
 }

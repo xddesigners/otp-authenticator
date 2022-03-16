@@ -85,7 +85,7 @@ class Method implements MethodInterface
     }
 
     /**
-     * Get the length of the TOTP code
+     * Get the configured length of the sms code
      *
      * @return int
      */

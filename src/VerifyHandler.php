@@ -47,7 +47,7 @@ class VerifyHandler implements VerifyHandlerInterface
             try {
                 $mfaPhone = $member->getPhoneForMFA();
                 if ($mfaPhone && $phone = $this->validatePhone($mfaPhone)) {
-                    $hiddenPhone = $this->obfuscatePhone($phone);
+                    $obfuscatedPhone = $this->obfuscatePhone($phone);
                 }
             } catch (Exception $ex) {
                 $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
@@ -71,7 +71,7 @@ class VerifyHandler implements VerifyHandlerInterface
 
         return [
             'enabled' => $enabled,
-            'phone' => $hiddenPhone,
+            'obfuscatedPhone' => $obfuscatedPhone,
             'codeLength' => $method->getMethod()->getCodeLength(),
         ];
     }
@@ -79,18 +79,19 @@ class VerifyHandler implements VerifyHandlerInterface
     public function verify(HTTPRequest $request, StoreInterface $store, RegisteredMethod $registeredMethod): Result
     {
         $data = json_decode($request->getBody(), true);
+        $member = $store->getMember() ?: Security::getCurrentUser();
+        
         $code = $data['code'];
         if (!$code) {
             return Result::create(false, _t(RegisterHandler::class . '.INVALID_CODE', 'Provided code was not valid'));
         }
 
-        $member = $store->getMember() ?: Security::getCurrentUser();
         if ($member) {
             $phone = $member->getPhoneForMFA();
         }
     
         if (!$phone) {
-            return Result::create(false, _t(RegisterHandler::class . '.INVALID_PHONE', 'Provided phone number was not valid'));
+            return Result::create(false, _t(RegisterHandler::class . '.NO_PHONE_NUMBER', 'Phone number not provided'));
         }
 
         try {

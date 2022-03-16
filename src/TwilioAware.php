@@ -55,7 +55,6 @@ trait TwilioAware
         return trim(substr($phone, 0, 4)) . ' ****** ' . trim(substr($phone, -2));
     }
 
-
     protected function validatePhone($phone, $region = null)
     {
         $phoneUtil = PhoneNumberUtil::getInstance();

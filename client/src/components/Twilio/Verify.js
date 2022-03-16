@@ -44,7 +44,7 @@ class Verify extends Component {
     this.setState({
       isSendingCode: true
     });
-    api('mfa/resendCode').then(response => response.json().then(result => {
+    api('mfa/resendcode').then(response => response.json().then(result => {
       this.setState({
         isSendingCode: false,
         error: !result.sent && result.error ? result.error : null
@@ -161,7 +161,7 @@ class Verify extends Component {
 
   renderVerifyForm() {
     const { code, error } = this.state;
-    const { codeLength, method, phone } = this.props;
+    const { codeLength, method, obfuscatedPhone } = this.props;
     const { ss: { i18n } } = window;
 
     const formGroupClasses = classnames('mfa-totp__validate-left', {
@@ -176,7 +176,7 @@ class Verify extends Component {
               'TwilioVerify.VERIFY',
               'Use the code that was sent to'
             )
-          }{<b>&nbsp;{phone}</b>}{
+          }{<b>&nbsp;{obfuscatedPhone}</b>}{
             this.renderSupportLink()
           }</p>
           <label htmlFor="totp-code" className="control-label">

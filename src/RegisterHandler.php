@@ -72,7 +72,7 @@ class RegisterHandler implements RegisterHandlerInterface
             // Phone is alreaddy known, so validate and send the message
             $mfaPhone = $member->getPhoneForMFA();
             if ($mfaPhone && $phone = $this->validatePhone($mfaPhone)) {
-                $hiddenPhone = $this->obfuscatePhone($phone);
+                $obfuscatedPhone = $this->obfuscatePhone($phone);
                 try {
                     $this->sendSMSCodeTo($phone);
                 } catch (Exception $ex) {
@@ -85,7 +85,7 @@ class RegisterHandler implements RegisterHandlerInterface
         $method = Injector::inst()->create(Method::class);
         return [
             'enabled' => $enabled,
-            'phone' => $hiddenPhone,
+            'obfuscatedPhone' => $obfuscatedPhone,
             'codeLength' => $method->getCodeLength(),
             'defaultCountry' => $method->getDefaultCountry(),
         ];
@@ -116,52 +116,31 @@ class RegisterHandler implements RegisterHandlerInterface
         $data = json_decode($request->getBody(), true);
         $member = $store->getMember() ?: Security::getCurrentUser();
 
-        // validate phone
-        if (isset($data['phone'])) {
-            $country = isset($data['country']) ? $data['country'] : Injector::inst()->create(Method::class)->getDefaultCountry();
-            if ($phone = $this->validatePhone($data['phone'], $country)) {
-                if ($member) {
-                    $member->MFAPhone = $phone;
-                    $member->write();
-                }
-
-                try {
-                    $this->sendSMSCodeTo($phone);
-                } catch (Exception $ex) {
-                    return Result::create(0, _t(
-                        __CLASS__ . '.INVALID_PHONE_NUMBER', 
-                        "Phone number {phone} is invalid", null, ['phone' => $data['phone']]
-                    ));
-                }
-
-                return Result::create(0, 'VALIDATE_CODE');
-            } else {
-                return Result::create(0, _t(
-                    __CLASS__ . '.INVALID_PHONE_NUMBER', 
-                    "Phone number {phone} is invalid", null, ['phone' => $data['phone']]
-                ));
-            }
-        }
-
         // continue with code validation
         $code = $data['code'];
         if (!$code) {
             return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
         }
-
         
         if ($member) {
             $phone = $member->getPhoneForMFA();
         }
 
         if (!$phone) {
-            return Result::create(false, _t(__CLASS__ . '.INVALID_PHONE', 'Provided phone number was not valid'));
+            return Result::create(false, _t(__CLASS__ . '.NO_PHONE_NUMBER', 'Phone number not provided'));
         }
 
-        $verification = $this->verifySMSCode($phone, $code);
-        if (!$verification->valid) {
+        try {
+            $verification = $this->verifySMSCode($phone, $code);
+        } catch(Exception $ex) {
+            $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
             return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
         }
+
+        if (!$verification->valid) {
+            return Result::create(false, _t(RegisterHandler::class . '.INVALID_CODE', 'Provided code was not valid'));
+        }
+        
         
         $key = Environment::getEnv('TWILIO_VERIFICATION_SID');
         if (empty($key)) {
