@@ -13,7 +13,8 @@ if (typeof(ss) === 'undefined' || typeof(ss.i18n) === 'undefined') {
     "TwilioVerify.NEXT": "Volgende",
     "TwilioVerify.HOW_TO_USE": "Hoe gebruik je een authenticator app?",
     "TwilioVerify.VERIFY": "Gebruik de code welke is verstuurd naar",
-    "TwilioVerify.ENTER_CODE": "Voor een {length}-cijferige code in",
-    "TwilioRegister.PHONE": "Mobiel nummer"
+    "TwilioVerify.ENTER_CODE": "Voer een {length}-cijferige code in",
+    "TwilioRegister.PHONE": "Mobiel nummer",
+    "TwilioVerify.RESEND": "Verstuur code opnieuw"
 });
 }

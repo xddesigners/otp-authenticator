@@ -67,6 +67,7 @@ class Method implements MethodInterface
     {
         Requirements::javascript('xddesigners/twilio-authenticator: client/dist/js/bundle.js');
         Requirements::css('xddesigners/twilio-authenticator: client/dist/styles/bundle.css');
+        Requirements::add_i18n_javascript('xddesigners/twilio-authenticator: client/lang');
     }
 
     /**
