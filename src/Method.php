@@ -58,11 +58,9 @@ class Method implements MethodInterface
 
     public function getThumbnail(): string
     {
-        // tmp
-        return '/twilio-authenticator/client/src/images/sms.svg';
-        // return ModuleLoader::getModule('xddesigners/twilio-authenticator')
-        //     ->getResource('client/dist/images/sms.svg')
-        //     ->getURL();
+        return ModuleLoader::getModule('xddesigners/twilio-authenticator')
+            ->getResource('client/dist/images/sms.svg')
+            ->getURL();
     }
 
     public function applyRequirements(): void

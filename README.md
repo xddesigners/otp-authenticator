@@ -20,3 +20,16 @@ Install with Composer:
 ```
 composer require xddesigners/twilio-authenticator ^4.0
 ```
+
+In your environment you'll need to define the following values:
+
+```
+# Twilio API credentials
+# (find here https://www.twilio.com/console)
+TWILIO_ACCOUNT_SID="SID"
+TWILIO_AUTH_TOKEN="TOKEN"
+
+# Verification Service SID
+# (create one here https://www.twilio.com/console/verify/services)
+TWILIO_VERIFICATION_SID="SID"
+```
