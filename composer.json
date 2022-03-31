@@ -1,6 +1,6 @@
 {
-    "name": "xddesigners/twilio-authenticator",
-    "description": "A Twilio authenticator for use with silverstripe/mfa",
+    "name": "xddesigners/otp-authenticator",
+    "description": "A OTP authenticator for use with silverstripe/mfa",
     "type": "silverstripe-vendormodule",
     "keywords": [
         "silverstripe",
@@ -25,7 +25,7 @@
     },
     "autoload": {
         "psr-4": {
-            "XD\\Twilio\\": "src/"
+            "XD\\OTPAuthenticator\\": "src/"
         }
     },
     "extra": {

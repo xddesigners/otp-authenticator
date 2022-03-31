@@ -1,14 +1,20 @@
 ---
 Name: twilioauthenticatorconfig
 ---
+# Register the method
 SilverStripe\MFA\Service\MethodRegistry:
   methods:
-    twilio: XD\Twilio\Method
+    otp: XD\OTPAuthenticator\Method
+
+# Register the default provider
+SilverStripe\Core\Injector\Injector:
+  XD\OTPAuthenticator\Providers\SendProvider:
+    class: XD\OTPAuthenticator\Providers\EmailProvider
 
 SilverStripe\Security\Member:
   extensions:
-    - XD\Twilio\MemberExtension
+    - XD\OTPAuthenticator\Extensions\MemberExtension
 
 SilverStripe\MFA\Authenticator\LoginHandler:
   extensions:
-    - XD\Twilio\LoginHandlerExtension
+    - XD\OTPAuthenticator\Extensions\LoginHandlerExtension

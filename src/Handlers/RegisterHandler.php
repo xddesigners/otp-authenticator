@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace XD\Twilio;
+namespace XD\OTPAuthenticator\Handlers;
 
 use Exception;
 use ParagonIE\ConstantTime\Base32;
@@ -19,6 +19,7 @@ use SilverStripe\MFA\Service\EncryptionAdapterInterface;
 use SilverStripe\MFA\State\Result;
 use SilverStripe\MFA\Store\StoreInterface;
 use SilverStripe\Security\Security;
+use XD\OTPAuthenticator\TOTPAware;
 
 /**
  * Handles registration requests using a time-based one-time password (TOTP) with the silverstripe/mfa module.
@@ -28,7 +29,7 @@ class RegisterHandler implements RegisterHandlerInterface
     use Injectable;
     use Configurable;
     use Extensible;
-    use TwilioAware;
+    use TOTPAware;
 
     /**
      * The link to SilverStripe user help documentation for this authenticator.
@@ -61,34 +62,35 @@ class RegisterHandler implements RegisterHandlerInterface
 
     public function start(StoreInterface $store): array
     {  
-        $store->setState([
-            'secret' => $this->generateSecret(),
-        ]);
+        return [];
+        // $store->setState([
+        //     'secret' => $this->generateSecret(),
+        // ]);
 
-        $enabled = !empty(Environment::getEnv('TWILIO_VERIFICATION_SID'));
+        // $enabled = !empty(Environment::getEnv('TWILIO_VERIFICATION_SID'));
 
-        $member = $store->getMember() ?: Security::getCurrentUser();
-        if ($member) {
-            // Phone is alreaddy known, so validate and send the message
-            $mfaPhone = $member->getPhoneForMFA();
-            if ($mfaPhone && $phone = $this->validatePhone($mfaPhone)) {
-                $obfuscatedPhone = $this->obfuscatePhone($phone);
-                try {
-                    $this->sendSMSCodeTo($phone);
-                } catch (Exception $ex) {
-                    $enabled = false;
-                    $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
-                }
-            }
-        }
+        // $member = $store->getMember() ?: Security::getCurrentUser();
+        // if ($member) {
+        //     // Phone is alreaddy known, so validate and send the message
+        //     $mfaPhone = $member->getPhoneForMFA();
+        //     if ($mfaPhone && $phone = $this->validatePhone($mfaPhone)) {
+        //         $obfuscatedPhone = $this->obfuscatePhone($phone);
+        //         try {
+        //             $this->sendSMSCodeTo($phone);
+        //         } catch (Exception $ex) {
+        //             $enabled = false;
+        //             $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
+        //         }
+        //     }
+        // }
 
-        $method = Injector::inst()->create(Method::class);
-        return [
-            'enabled' => $enabled,
-            'obfuscatedPhone' => $obfuscatedPhone,
-            'codeLength' => $method->getCodeLength(),
-            'defaultCountry' => $method->getDefaultCountry(),
-        ];
+        // $method = Injector::inst()->create(Method::class);
+        // return [
+        //     'enabled' => $enabled,
+        //     'obfuscatedPhone' => $obfuscatedPhone,
+        //     'codeLength' => $method->getCodeLength(),
+        //     'defaultCountry' => $method->getDefaultCountry(),
+        // ];
     }
 
     /**
@@ -113,53 +115,54 @@ class RegisterHandler implements RegisterHandlerInterface
      */
     public function register(HTTPRequest $request, StoreInterface $store): Result
     {
-        $data = json_decode($request->getBody(), true);
-        $member = $store->getMember() ?: Security::getCurrentUser();
+        // $data = json_decode($request->getBody(), true);
+        // $member = $store->getMember() ?: Security::getCurrentUser();
 
-        // continue with code validation
-        $code = $data['code'];
-        if (!$code) {
-            return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
-        }
+        // // continue with code validation
+        // $code = $data['code'];
+        // if (!$code) {
+        //     return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
+        // }
         
-        if ($member) {
-            $phone = $member->getPhoneForMFA();
-        }
+        // if ($member) {
+        //     $phone = $member->getPhoneForMFA();
+        // }
 
-        if (!$phone) {
-            return Result::create(false, _t(__CLASS__ . '.NO_PHONE_NUMBER', 'Phone number not provided'));
-        }
+        // if (!$phone) {
+        //     return Result::create(false, _t(__CLASS__ . '.NO_PHONE_NUMBER', 'Phone number not provided'));
+        // }
 
-        try {
-            $verification = $this->verifySMSCode($phone, $code);
-        } catch(Exception $ex) {
-            $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
-            return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
-        }
+        // try {
+        //     $verification = $this->verifySMSCode($phone, $code);
+        // } catch(Exception $ex) {
+        //     $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
+        //     return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
+        // }
 
-        if (!$verification->valid) {
-            return Result::create(false, _t(RegisterHandler::class . '.INVALID_CODE', 'Provided code was not valid'));
-        }
+        // if (!$verification->valid) {
+        //     return Result::create(false, _t(RegisterHandler::class . '.INVALID_CODE', 'Provided code was not valid'));
+        // }
         
         
-        $key = Environment::getEnv('TWILIO_VERIFICATION_SID');
-        if (empty($key)) {
-            throw new AuthenticationFailedException(
-                'Please define a TWILIO_VERIFICATION_SID environment variable'
-            );
-        }
+        // $key = Environment::getEnv('TWILIO_VERIFICATION_SID');
+        // if (empty($key)) {
+        //     throw new AuthenticationFailedException(
+        //         'Please define a TWILIO_VERIFICATION_SID environment variable'
+        //     );
+        // }
 
-        // Encrypt the TOTP secret before storing it
-        $secret = Injector::inst()->get(EncryptionAdapterInterface::class)->encrypt(
-            $store->getState()['secret'],
-            $key
-        );
+        // // Encrypt the TOTP secret before storing it
+        // $secret = Injector::inst()->get(EncryptionAdapterInterface::class)->encrypt(
+        //     $store->getState()['secret'],
+        //     $key
+        // );
 
-        return Result::create()->setContext(['secret' => $secret]);
+        // return Result::create()->setContext(['secret' => $secret]);
     }
 
     public function getDescription(): string
     {
+        // todo check provider
         return _t(
             __CLASS__ . '.DESCRIPTION',
             'Authenticate with an code sent to your mobile phone'
@@ -173,11 +176,13 @@ class RegisterHandler implements RegisterHandlerInterface
 
     public function getSupportText(): string
     {
+        // todo check provider
         return _t(__CLASS__ . '.SUPPORT_LINK_DESCRIPTION', 'How to use an SMS code.');
     }
 
     public function getComponent(): string
     {
+        // todo rename component
         return 'TwilioRegister';
     }
 

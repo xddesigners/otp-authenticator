@@ -1,5 +1,5 @@
 {
-  "name": "xddesigners-twilio-authenticator",
+  "name": "xddesigners-otp-authenticator",
   "main": "./client/src/boot/index.js",
   "author": "XD designers",
   "engines": {
