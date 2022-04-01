@@ -7,6 +7,7 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Extension;
 use SilverStripe\MFA\Authenticator\LoginHandler;
 use SilverStripe\MFA\RequestHandler\BaseHandlerTrait;
+use SilverStripe\MFA\Service\MethodRegistry;
 use SilverStripe\Security\Security;
 use XD\OTPAuthenticator\Method;
 use XD\OTPAuthenticator\TOTPAware;
@@ -38,7 +39,8 @@ class LoginHandlerExtension extends Extension
         $data = json_decode($request->getBody(), true);
         $store = $this->getStore();
         $member = $store->getMember() ?: Security::getCurrentUser();
-        $method = $store->getMethod();
+        $methodSegment = $store->getMethod();
+        $method = MethodRegistry::singleton()->getMethodByURLSegment($methodSegment);
 
         if (!$method instanceof Method) {
             return $this->owner->jsonResponse([
@@ -53,7 +55,7 @@ class LoginHandlerExtension extends Extension
         $sendProvider = $method->getSendProvider();
         $fieldLabel = $sendProvider->getFieldLabel();
 
-        if (!isset($data['sendto'])) {
+        if (!isset($data['sendTo'])) {
             return $this->owner->jsonResponse([
                 'error' => _t(Method::class . '.NO_TO', "No {fieldLabel} provided", null, [
                     'fieldLabel' => $fieldLabel
@@ -61,7 +63,7 @@ class LoginHandlerExtension extends Extension
             ]);
         }
 
-        $to = $data['sendto'];
+        $to = $data['sendTo'];
         if (!$sendProvider->validate($to)) {
             return $this->owner->jsonResponse([
                 'error' => _t(Method::class . '.INVALID_TO', "No valid {fieldLabel} provided", null, [
@@ -75,7 +77,12 @@ class LoginHandlerExtension extends Extension
             $member->OTPSend = $to;
             $member->write();
         }
-
+        
+        // TODO: TEST store the send addr in the registerd method ?
+        // $store->addState([
+        //     'sendTo' => $to
+        // ]);
+        
         // get the totp code
         $code = $this->getCode($store);
 
@@ -91,7 +98,7 @@ class LoginHandlerExtension extends Extension
 
         return $this->owner->jsonResponse([
             'view' => 'VALIDATE_CODE',
-            'obfuscatedPhone' => $sendProvider->obfuscateTo($to)
+            'obfuscatedTo' => $sendProvider->obfuscateTo($to)
         ]);
     }
 
@@ -102,7 +109,8 @@ class LoginHandlerExtension extends Extension
     {
         $store = $this->getStore();
         $member = $store->getMember() ?: Security::getCurrentUser();
-        $method = $store->getMethod();
+        $methodSegment = $store->getMethod();
+        $method = MethodRegistry::singleton()->getMethodByURLSegment($methodSegment);
 
         if (!$method instanceof Method) {
             return $this->owner->jsonResponse([

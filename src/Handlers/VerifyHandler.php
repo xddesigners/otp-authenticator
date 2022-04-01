@@ -19,6 +19,7 @@ use SilverStripe\MFA\State\Result;
 use SilverStripe\MFA\Store\StoreInterface;
 use SilverStripe\Security\Security;
 use Twilio\Rest\Client;
+use XD\OTPAuthenticator\Method;
 use XD\OTPAuthenticator\TOTPAware;
 
 /**
@@ -41,81 +42,66 @@ class VerifyHandler implements VerifyHandlerInterface
      */
     protected $logger;
 
-    public function start(StoreInterface $store, RegisteredMethod $method): array
+    public function start(StoreInterface $store, RegisteredMethod $registeredMethod): array
     {
-        return [];
-        // $member = $store->getMember() ?: Security::getCurrentUser();
-        // if ($member) {
-        //     try {
-        //         $mfaPhone = $member->getPhoneForMFA();
-        //         if ($mfaPhone && $phone = $this->validatePhone($mfaPhone)) {
-        //             $obfuscatedPhone = $this->obfuscatePhone($phone);
-        //         }
-        //     } catch (Exception $ex) {
-        //         $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
-        //     }
-        // }
+        $data = json_decode((string) $registeredMethod->Data, true);
+        if (!$data || !isset($data['secret'])) {
+            throw new RuntimeException('TOTP secret is not available in the registered method data');
+        }
 
-        // if (!$phone) {
-        //     return [
-        //         'enabled' => false
-        //     ];
-        // }
+        $method = $registeredMethod->getMethod();
+        if (!$method instanceof Method) {
+            return [
+                'enabled' => false
+            ];
+        }
 
-        // try {
-        //     $this->sendSMSCodeTo($phone);
-        //     $enabled = true;
-        // } catch (Exception $ex) {
-        //     // noop: encryption may not be defined, so method should be disabled rather than application error
-        //     $enabled = false;
-        //     $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
-        // }
+        $member = $store->getMember() ?: Security::getCurrentUser();
+        if (!$member) {
+            return [
+                'enabled' => false
+            ];
+        }
 
-        // return [
-        //     'enabled' => $enabled,
-        //     'obfuscatedPhone' => $obfuscatedPhone,
-        //     'codeLength' => $method->getMethod()->getCodeLength(),
-        // ];
+        $secret = $this->decryptSecrey($data['secret']);
+        $this->storeSecret($store, $secret);
+
+        $sendProvider = $method->getSendProvider();
+        $enabled = $sendProvider->enabled();
+        $to = $member->getOTPSendTo();
+
+        // Validate the to addr and send the code
+        if ($sendProvider->validate($to)) {
+            $code = $this->getCode($store);
+            try {
+                $sendProvider->send($code, $to);
+            } catch (Exception $ex) {
+                $enabled = false;
+                $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
+            }
+            
+        }
+
+        return [
+            'enabled' => $enabled,
+            'obfuscatedTo' => $sendProvider->obfuscateTo($to),
+            'codeLength' => $method->getCodeLength(),
+        ];
     }
 
     public function verify(HTTPRequest $request, StoreInterface $store, RegisteredMethod $registeredMethod): Result
     {
+        $data = json_decode($request->getBody(), true);
+        if (!$this->verifyCode($data['code'] ?? '', $store)) {
+            return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Invalid code'));
+        }
+
         return Result::create();
-
-        // $data = json_decode($request->getBody(), true);
-        // $member = $store->getMember() ?: Security::getCurrentUser();
-        
-        // $code = $data['code'];
-        // if (!$code) {
-        //     return Result::create(false, _t(RegisterHandler::class . '.INVALID_CODE', 'Provided code was not valid'));
-        // }
-
-        // if ($member) {
-        //     $phone = $member->getPhoneForMFA();
-        // }
-    
-        // if (!$phone) {
-        //     return Result::create(false, _t(RegisterHandler::class . '.NO_PHONE_NUMBER', 'Phone number not provided'));
-        // }
-
-        // try {
-        //     $verification = $this->verifySMSCode($phone, $code);
-        // } catch(Exception $ex) {
-        //     $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
-        //     return Result::create(false, _t(RegisterHandler::class . '.INVALID_PHONE', 'Provided phone number was not valid'));
-        // }
-        
-        // if (!$verification->valid) {
-        //     return Result::create(false, _t(RegisterHandler::class . '.INVALID_CODE', 'Provided code was not valid'));
-        // }
-
-        // return Result::create();
     }
 
     public function getComponent(): string
     {
-        // todo rename component
-        return 'TwilioVerify';
+        return 'OTPAuthenticatorVerify';
     }
 
     /**

@@ -7,6 +7,7 @@ namespace XD\OTPAuthenticator\Providers;
 use Exception;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
+use SilverStripe\Core\Environment;
 
 class TwilioProvider extends SendProvider
 {
@@ -58,6 +59,12 @@ class TwilioProvider extends SendProvider
         return trim(substr($to, 0, 4)) . ' ****** ' . trim(substr($to, -2));
     }
 
+    public function getFieldValidate(): string
+    {
+        // TODO: add phone validate
+        return '.+@.+\..+';
+    }
+
     public function getFieldType(): string
     {
         return 'phone';
@@ -66,5 +73,13 @@ class TwilioProvider extends SendProvider
     public function getFieldLabel(): string
     {
         return _t(__CLASS__ . '.FieldLabel', 'Phone number');
+    }
+
+    /**
+     * Check if the proper env files have been set
+     */
+    public function enabled(): bool
+    {
+        return !empty(Environment::getEnv('TWILIO_VERIFICATION_SID'));;
     }
 }

@@ -5,20 +5,18 @@ declare(strict_types=1);
 namespace XD\OTPAuthenticator\Handlers;
 
 use Exception;
-use ParagonIE\ConstantTime\Base32;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Config\Configurable;
-use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\MFA\Exception\AuthenticationFailedException;
 use SilverStripe\MFA\Method\Handler\RegisterHandlerInterface;
-use SilverStripe\MFA\Service\EncryptionAdapterInterface;
+use SilverStripe\MFA\Service\MethodRegistry;
 use SilverStripe\MFA\State\Result;
 use SilverStripe\MFA\Store\StoreInterface;
 use SilverStripe\Security\Security;
+use XD\OTPAuthenticator\Method;
 use XD\OTPAuthenticator\TOTPAware;
 
 /**
@@ -40,15 +38,6 @@ class RegisterHandler implements RegisterHandlerInterface
     private static $user_help_link = '';
 
     /**
-     * The desired length of the TOTP secret. This affects the UI, since it is displayed to the user to be entered
-     * manually if they cannot scan the QR code.
-     *
-     * @config
-     * @var int
-     */
-    private static $secret_length = 16;
-
-    /**
      * @var string[]
      */
     private static $dependencies = [
@@ -62,46 +51,52 @@ class RegisterHandler implements RegisterHandlerInterface
 
     public function start(StoreInterface $store): array
     {  
-        return [];
-        // $store->setState([
-        //     'secret' => $this->generateSecret(),
-        // ]);
+        $methodSegment = $store->getMethod();
+        $method = MethodRegistry::singleton()->getMethodByURLSegment($methodSegment);
+        
+        if (!$method || !$method instanceof Method) {
+            // throw error
+            return [
+                'error' => 'wrong method',
+                'enabled' => false
+            ];
+        }
 
-        // $enabled = !empty(Environment::getEnv('TWILIO_VERIFICATION_SID'));
+        $member = $store->getMember() ?: Security::getCurrentUser();
+        if (!$member) {
+            return [
+                'enabled' => false
+            ];
+        }
+        
+        // Store the secret used by the code generator
+        $this->storeSecret($store);
 
-        // $member = $store->getMember() ?: Security::getCurrentUser();
-        // if ($member) {
-        //     // Phone is alreaddy known, so validate and send the message
-        //     $mfaPhone = $member->getPhoneForMFA();
-        //     if ($mfaPhone && $phone = $this->validatePhone($mfaPhone)) {
-        //         $obfuscatedPhone = $this->obfuscatePhone($phone);
-        //         try {
-        //             $this->sendSMSCodeTo($phone);
-        //         } catch (Exception $ex) {
-        //             $enabled = false;
-        //             $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
-        //         }
-        //     }
-        // }
+        $sendProvider = $method->getSendProvider();
+        $enabled = $sendProvider->enabled();
+        $to = $member->getOTPSendTo();
 
-        // $method = Injector::inst()->create(Method::class);
-        // return [
-        //     'enabled' => $enabled,
-        //     'obfuscatedPhone' => $obfuscatedPhone,
-        //     'codeLength' => $method->getCodeLength(),
-        //     'defaultCountry' => $method->getDefaultCountry(),
-        // ];
-    }
+        // Validate the to addr and send the code
+        if ($to && $sendProvider->validate($to)) {
+            $code = $this->getCode($store);
+            try {
+                $sendProvider->send($code, $to);
+            } catch (Exception $ex) {
+                $enabled = false;
+                $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
+            }
+            
+        }
 
-    /**
-     * Generates a TOTP secret to the configured maximum length
-     *
-     * @return string
-     */
-    protected function generateSecret(): string
-    {
-        $length = $this->config()->get('secret_length');
-        return substr(trim(Base32::encodeUpper(random_bytes(64)), '='), 0, $length);
+        return [
+            'enabled' => $enabled,
+            'obfuscatedTo' => $sendProvider->obfuscateTo($to),
+            'fieldType' => $sendProvider->getFieldType(),
+            'fieldLabel' => $sendProvider->getFieldLabel(),
+            'fieldValidate' => $sendProvider->getFieldValidate(),
+            'codeLength' => $method->getCodeLength(),
+            // 'defaultCountry' => $method->getDefaultCountry(), // check if needed ?
+        ];
     }
 
     /**
@@ -115,57 +110,28 @@ class RegisterHandler implements RegisterHandlerInterface
      */
     public function register(HTTPRequest $request, StoreInterface $store): Result
     {
-        // $data = json_decode($request->getBody(), true);
-        // $member = $store->getMember() ?: Security::getCurrentUser();
+        $data = json_decode($request->getBody(), true);
+        if (!isset($data['code']) || !$data['code']) {
+            return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
+        }
 
-        // // continue with code validation
-        // $code = $data['code'];
-        // if (!$code) {
-        //     return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
-        // }
-        
-        // if ($member) {
-        //     $phone = $member->getPhoneForMFA();
-        // }
+        if (!$this->verifyCode($data['code'], $store)) {
+            return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
+        }
 
-        // if (!$phone) {
-        //     return Result::create(false, _t(__CLASS__ . '.NO_PHONE_NUMBER', 'Phone number not provided'));
-        // }
+        // Encrypt the TOTP secret before storing it
+        $secret = $store->getState()['secret'];
+        $secret = $this->encryptSecrey($secret);
 
-        // try {
-        //     $verification = $this->verifySMSCode($phone, $code);
-        // } catch(Exception $ex) {
-        //     $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
-        //     return Result::create(false, _t(__CLASS__ . '.INVALID_CODE', 'Provided code was not valid'));
-        // }
-
-        // if (!$verification->valid) {
-        //     return Result::create(false, _t(RegisterHandler::class . '.INVALID_CODE', 'Provided code was not valid'));
-        // }
-        
-        
-        // $key = Environment::getEnv('TWILIO_VERIFICATION_SID');
-        // if (empty($key)) {
-        //     throw new AuthenticationFailedException(
-        //         'Please define a TWILIO_VERIFICATION_SID environment variable'
-        //     );
-        // }
-
-        // // Encrypt the TOTP secret before storing it
-        // $secret = Injector::inst()->get(EncryptionAdapterInterface::class)->encrypt(
-        //     $store->getState()['secret'],
-        //     $key
-        // );
-
-        // return Result::create()->setContext(['secret' => $secret]);
+        // TODO: TEST store the send to in the registered method instead of the member ?
+        return Result::create()->setContext(['secret' => $secret]);
     }
 
     public function getDescription(): string
     {
-        // todo check provider
         return _t(
             __CLASS__ . '.DESCRIPTION',
-            'Authenticate with an code sent to your mobile phone'
+            'Authenticate with an one time password'
         );
     }
 
@@ -176,14 +142,12 @@ class RegisterHandler implements RegisterHandlerInterface
 
     public function getSupportText(): string
     {
-        // todo check provider
-        return _t(__CLASS__ . '.SUPPORT_LINK_DESCRIPTION', 'How to use an SMS code.');
+        return _t(__CLASS__ . '.SUPPORT_LINK_DESCRIPTION', 'How to use an one time password.');
     }
 
     public function getComponent(): string
     {
-        // todo rename component
-        return 'TwilioRegister';
+        return 'OTPAuthenticatorRegister';
     }
 
     /**

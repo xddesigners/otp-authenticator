@@ -6,20 +6,37 @@ namespace XD\OTPAuthenticator;
 
 use OTPHP\OTPInterface;
 use OTPHP\TOTP;
+use ParagonIE\ConstantTime\Base32;
 use RuntimeException;
 use SilverStripe\Core\Environment;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\MFA\Exception\AuthenticationFailedException;
+use SilverStripe\MFA\Service\EncryptionAdapterInterface;
 use SilverStripe\MFA\Store\StoreInterface;
+use SilverStripe\Security\Security;
 
 trait TOTPAware
 {
-    protected function getCode($store): string
+    protected function storeSecret(StoreInterface $store, string $secret = null): void
+    {
+        if (!$secret) {
+            $member = $store->getMember() ?: Security::getCurrentUser();
+            $uniqueField = $member->config()->get('unique_identifier_field');
+            $secret = $this->generateSecret($member->{$uniqueField});
+        }
+
+        $store->setState([
+            'secret' => $secret
+        ]);
+    }
+    
+    protected function getCode(StoreInterface $store): string
     {
         $totp = $this->getTotp($store);
-        $code = $totp->now();
-        return $code;
+        return $totp->now();
     }
 
-    protected function verify($code, $store): bool
+    protected function verifyCode(string $code, StoreInterface $store): bool
     {
         $totp = $this->getTotp($store);
         return $totp->verify($code);
@@ -36,6 +53,47 @@ trait TOTPAware
         return (string) Environment::getEnv('SS_MFA_SECRET_KEY');
     }
     
+    /**
+     * Generates a TOTP secret with the user's unique identifier
+     *
+     * @return string
+     */
+    protected function generateSecret(string $uniqueIdentifier): string
+    {
+        $length = Method::config()->get('secret_length');
+        // TODO: test with random string since the secret is stored on the registered method
+        return substr(trim(Base32::encodeUpper($uniqueIdentifier), '='), 0, $length);
+    }
+
+    protected function encryptSecrey(string $secret): string
+    {
+        $key = $this->getEncryptionKey();
+        if (empty($key)) {
+            throw new AuthenticationFailedException(
+                'Please define a SS_MFA_SECRET_KEY environment variable for encryption'
+            );
+        }
+
+        return Injector::inst()->get(EncryptionAdapterInterface::class)->encrypt(
+            $secret,
+            $key
+        );
+    }
+
+    protected function decryptSecrey(string $secret): string
+    {
+        $key = $this->getEncryptionKey();
+        if (empty($key)) {
+            throw new AuthenticationFailedException(
+                'Please define a SS_MFA_SECRET_KEY environment variable for encryption'
+            );
+        }
+
+        return Injector::inst()->get(EncryptionAdapterInterface::class)->decrypt(
+            $secret,
+            $key
+        );
+    }
 
     /**
      * Get an instance of the TOTP handler service. The secret must already be defined and set to the StoreInterface.
@@ -51,9 +109,8 @@ trait TOTPAware
             throw new RuntimeException('OTP secret is not available in the StoreInterface');
         }
 
-        // configure period, default is 30 sec.
-        // for sms/email otp's should be 60 sec ?
-
-        return TOTP::create($state['secret']);
+        $period = Method::config()->get('code_period');
+        $length = Method::config()->get('code_length');
+        return TOTP::create($state['secret'], $period, 'sha1', $length);
     }
 }

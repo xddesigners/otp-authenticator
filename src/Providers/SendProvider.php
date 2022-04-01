@@ -21,6 +21,16 @@ abstract class SendProvider
      * Validate the send to address
      */
     abstract public function validate($to): bool;
+    
+    /**
+     * Add a regex to validate the input on the frond end
+     */
+    abstract public function getFieldValidate(): string;
+
+    /**
+     * method to check if the provider is properly set up
+     */
+    abstract public function enabled(): bool;
 
     /**
      * Obfuscate the sent to address.

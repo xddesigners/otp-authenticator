@@ -10,6 +10,8 @@ use SilverStripe\MFA\Method\Handler\VerifyHandlerInterface;
 use SilverStripe\MFA\Method\Handler\RegisterHandlerInterface;
 use SilverStripe\MFA\Method\MethodInterface;
 use SilverStripe\View\Requirements;
+use XD\OTPAuthenticator\Handlers\RegisterHandler;
+use XD\OTPAuthenticator\Handlers\VerifyHandler;
 use XD\OTPAuthenticator\Providers\SendProvider;
 
 /**
@@ -26,6 +28,23 @@ class Method implements MethodInterface
      * @var int
      */
     private static $code_length = 6;
+    
+    /**
+     * The time to keep the code alive in seconds
+     *
+     * @config
+     * @var int
+     */
+    private static $code_period = 600;
+
+    /**
+     * The desired length of the TOTP secret. This affects the UI, since it is displayed to the user to be entered
+     * manually if they cannot scan the QR code.
+     *
+     * @config
+     * @var int
+     */
+    private static $secret_length = 16;
 
     public function getName(): string
     {
@@ -54,10 +73,10 @@ class Method implements MethodInterface
 
     public function getThumbnail(): string
     {
-        return '/otp-authenticator/client/dist/images/sms.svg';
+        return '/otp-authenticator/client/dist/images/otp.svg';
 
         // return ModuleLoader::getModule('xddesigners/otp-authenticator')
-        //     ->getResource('client/dist/images/sms.svg')
+        //     ->getResource('client/dist/images/otp.svg')
         //     ->getURL();
     }
 

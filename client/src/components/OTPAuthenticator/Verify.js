@@ -44,7 +44,7 @@ class Verify extends Component {
     this.setState({
       isSendingCode: true
     });
-    api('mfa/resendcode').then(response => response.json().then(result => {
+    api('mfa/otp/resendcode').then(response => response.json().then(result => {
       this.setState({
         isSendingCode: false,
         error: !result.sent && result.error ? result.error : null
@@ -115,7 +115,7 @@ class Verify extends Component {
             disabled={isNextDisabled}
             onClick={this.handleSubmit}
           >
-            { i18n._t('TwilioVerify.NEXT', 'Next') }
+            { i18n._t('OTPAuthenticatorVerify.NEXT', 'Next') }
           </button>
         </li>
         <li className="mfa-action-list__item">
@@ -126,7 +126,7 @@ class Verify extends Component {
             disabled={isSendingCode}
           >
             { isSendingCode && (<span><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" /><span>&nbsp;</span></span>)}
-            { i18n._t('TwilioVerify.RESEND', 'Resend code') }
+            { i18n._t('OTPAuthenticatorVerify.RESEND', 'Resend code') }
           </button>
         </li>
         {moreOptionsControl && (
@@ -154,14 +154,14 @@ class Verify extends Component {
 
     return (
       <a href={supportLink} target="_blank" rel="noopener noreferrer">
-        {supportText || i18n._t('TwilioVerify.HOW_TO_USE', 'How to use authenticator apps.')}
+        {supportText || i18n._t('OTPAuthenticatorVerify.HOW_TO_USE', 'How to use authenticator apps.')}
       </a>
     );
   }
 
   renderVerifyForm() {
     const { code, error } = this.state;
-    const { codeLength, method, obfuscatedPhone } = this.props;
+    const { codeLength, method, obfuscatedTo } = this.props;
     const { ss: { i18n } } = window;
 
     const formGroupClasses = classnames('mfa-totp__validate-left', {
@@ -173,16 +173,16 @@ class Verify extends Component {
         <div className={formGroupClasses}>
           <p>{
             i18n._t(
-              'TwilioVerify.VERIFY',
+              'OTPAuthenticatorVerify.VERIFY',
               'Use the code that was sent to'
             )
-          }{<b>&nbsp;{obfuscatedPhone}</b>}{
+          }{<b>&nbsp;{obfuscatedTo}</b>}{
             this.renderSupportLink()
           }</p>
           <label htmlFor="totp-code" className="control-label">
             {
               i18n.inject(
-                i18n._t('TwilioVerify.ENTER_CODE', 'Enter {length}-digit code'),
+                i18n._t('OTPAuthenticatorVerify.ENTER_CODE', 'Enter {length}-digit code'),
                 { length: codeLength }
               )
             }
@@ -237,6 +237,6 @@ Verify.defaultProps = {
   error: null,
 };
 
-Verify.displayName = 'TwilioVerify';
+Verify.displayName = 'OTPAuthenticatorVerify';
 
 export default Verify;

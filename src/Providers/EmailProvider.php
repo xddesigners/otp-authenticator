@@ -8,7 +8,7 @@ use SilverStripe\Control\Email\Email;
 use SilverStripe\SiteConfig\SiteConfig;
 
 class EmailProvider extends SendProvider
-{
+{   
     public function send($code, $to): bool
     {
         $from = $this->getFrom(); 
@@ -19,7 +19,7 @@ class EmailProvider extends SendProvider
         return $email->send();
     }
 
-    public function getFrom(): string
+    public function getFrom()
     {
         $from = Email::config()->get('admin_email');
         $this->extend('updateFrom', $from);
@@ -29,7 +29,7 @@ class EmailProvider extends SendProvider
     public function getSubject(): string
     {
         $config = SiteConfig::current_site_config();
-        $subject = _t(__CLASS__ . '.Subject', 'Your authentication code for {site}', null, ['site' => $config]);
+        $subject = _t(__CLASS__ . '.Subject', 'Your authentication code for {site}', null, ['site' => $config->Title]);
         $this->extend('updateSubject', $subject);
         return $subject;
     }
@@ -43,8 +43,17 @@ class EmailProvider extends SendProvider
 
     public function obfuscateTo($to): string
     {
-        // TODO show first 3 chars and all after @
-        return $to;
+        if (!$to) {
+            return '';
+        }
+
+        $length = strlen($to);
+        $atPos = strpos($to, '@');
+        $afterAt = $length - $atPos;
+        $show = 2;
+        $hide = $atPos >= $show ? $atPos - $show : 2;
+        $hidden = str_pad('', $hide, '*');
+        return trim(substr($to, 0, $show)) . $hidden . trim(substr($to, -$afterAt));
     }
 
     public function validate($to): bool
@@ -60,5 +69,18 @@ class EmailProvider extends SendProvider
     public function getFieldLabel(): string
     {
         return _t(__CLASS__ . '.FieldLabel', 'Email');
+    }
+
+    public function getFieldValidate(): string
+    {
+        return '.+@.+\..+';
+    }
+
+    /**
+     * Email requires no special setup
+     */
+    public function enabled(): bool
+    {
+        return true;
     }
 }

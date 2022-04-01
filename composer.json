@@ -17,6 +17,7 @@
         "php": "^7.4 || ^8.0",
         "silverstripe/mfa": "^4.0",
         "twilio/sdk": "^6.35",
+        "spomky-labs/otphp": "^10",
         "giggsey/libphonenumber-for-php": "^8.12"
     },
     "require-dev": {

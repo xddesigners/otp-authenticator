@@ -7,7 +7,7 @@ import PhoneInput from 'react-phone-input-2';
 import api from 'lib/api'; // eslint-disable-line
 
 const VIEWS = {
-  SET_PHONE: 'SET_PHONE',
+  SET_TO: 'SET_TO',
   VALIDATE: 'VALIDATE_CODE',
 };
 
@@ -18,42 +18,63 @@ const VIEWS = {
 class Register extends Component {
   constructor(props) {
     super(props);
-    const { error, obfuscatedPhone, defaultCountry } = props;
 
-    // Set the view to validate code or set phone
-    const view = obfuscatedPhone ? VIEWS.VALIDATE : VIEWS.SET_PHONE;
+    const { error, obfuscatedTo } = props;
+
+    // Set the view to validate code or set sendTo addr
+    const view = obfuscatedTo ? VIEWS.VALIDATE : VIEWS.SET_TO;
 
     this.state = {
-      country: defaultCountry,
-      obfuscatedPhone,
-      phone: '',
+      // country: defaultCountry,
+      obfuscatedTo,
+      sendTo: '',
       view,
       error,
     };
 
-    this.phoneInput = null;
-    this.setPhoneInput = element => {
-      this.phoneInput = element;
+    this.sendToInput = null;
+    this.setSendToInput = element => {
+      this.sendToInput = element;
     };
 
     this.handleBack = this.handleBack.bind(this);
     this.handleBackToScan = this.handleBackToScan.bind(this);
     this.handleNext = this.handleNext.bind(this);
-    this.handleChangePhone = this.handleChangePhone.bind(this);
+    this.handleChangeSendTo = this.handleChangeSendTo.bind(this);
   }
 
   componentDidMount() {
-    if (this.phoneInput) {
-      this.phoneInput.focus();
+    if (this.sendToInput) {
+      this.sendToInput.focus();
     }
   }
 
-  handleChangePhone(value, country, e, formattedValue) {
-    // console.log('value', value, 'country', country, 'e', e, 'formattedValue', formattedValue);
-    this.setState({
-      phone: formattedValue,
-      country: country.countryCode
-    });
+  handleChangeSendTo(e) {
+    const { fieldValidate, fieldLabel } = this.props;
+    const { ss: { i18n } } = window;
+
+    const value = e.target.value;
+    const regex = new RegExp(fieldValidate);
+
+    const result = regex.test(value);
+    const error = i18n.inject(
+      i18n._t('OTPAuthenticatorVerify.ERROR_FIELD', 'Invalid {field} value'),
+      { field: fieldLabel.toLowerCase() }
+    );
+
+    if (!result) {
+      this.setState({
+        error,
+        sendTo: value,
+        // country: country.countryCode
+      });
+    } else {
+      this.setState({
+        error: null,
+        sendTo: value,
+        // country: country.countryCode
+      });
+    }
   }
 
   /**
@@ -68,7 +89,7 @@ class Register extends Component {
    */
   handleBackToScan() {
     this.setState({
-      view: VIEWS.SET_PHONE,
+      view: VIEWS.SET_TO,
       error: null,
     });
   }
@@ -77,10 +98,12 @@ class Register extends Component {
    * After user has scanned the QR code, handle the transition to the verify screen
    */
   handleNext() {
-    const { phone, country } = this.state;
-    const body = JSON.stringify({ phone, country });
-    api('mfa/registerphone', 'POST', body).then(response => response.json().then(result => {
-      const { error, obfuscatedPhone, view } = result;
+    const { sendTo } = this.state;
+    const body = JSON.stringify({ sendTo });
+
+    // TODO: check if we need country for phone
+    api('mfa/otp/registerto', 'POST', body).then(response => response.json().then(result => {
+      const { error, obfuscatedTo, view } = result;
       if (error && error.length) {
         this.setState({
           error
@@ -88,7 +111,7 @@ class Register extends Component {
       } else {
         this.setState({
           view,
-          obfuscatedPhone,
+          obfuscatedTo,
           error: null
         });
       }
@@ -102,7 +125,7 @@ class Register extends Component {
    * @returns {HTMLElement}
    */
   renderActionsMenu() {
-    const { phone } = this.state;
+    const { sendTo } = this.state;
     const { ss: { i18n } } = window;
 
     return (
@@ -112,9 +135,9 @@ class Register extends Component {
             type="button"
             className="btn btn-primary"
             onClick={this.handleNext}
-            disabled={!phone}
+            disabled={!sendTo}
           >
-            { i18n._t('TwilioRegister.NEXT', 'Next') }
+            { i18n._t('OTPAuthenticatorRegister.NEXT', 'Next') }
           </button>
         </li>
         <li className="mfa-action-list__item">
@@ -123,7 +146,7 @@ class Register extends Component {
             className="btn btn-secondary"
             onClick={this.handleBack}
           >
-            { i18n._t('TwilioRegister.BACK', 'Back') }
+            { i18n._t('OTPAuthenticatorRegister.BACK', 'Back') }
           </button>
         </li>
       </ul>
@@ -150,38 +173,89 @@ class Register extends Component {
     );
   }
 
+  renderField() {
+    const { error, sendTo } = this.state;
+    // const { fieldLabel } = this.props;
+    const { fieldType, fieldLabel } = this.props;
+    // const fieldType = 'phone';
+    // validate field type
+
+    // get country from window ?
+
+    return (
+      <div className="field">
+        <label htmlFor="sendTo" className="control-label">{ fieldLabel }</label>
+
+        { fieldType === 'email' && (
+          <input
+            className="text"
+            value={sendTo}
+            ref={this.setSendToInput}
+            onChange={this.handleChangeSendTo}
+            type="email"
+          />
+        )}
+
+        { fieldType === 'phone' && (
+          <PhoneInput
+            // country={country}
+            value={sendTo}
+            // ref={this.setSendToInput}
+            onChange={this.handleChangeSendTo}
+          />
+        )}
+
+        { // fallback to text
+          (fieldType !== 'email' && fieldType !== 'phone') && (
+          <input
+            className="text"
+            value={sendTo}
+            ref={this.setSendToInput}
+            onChange={this.handleChangeSendTo}
+            type="text"
+          />
+        )}
+
+        { error && <div className="help-block">{error}</div> }
+      </div>
+    );
+
+    //   <PhoneInput
+        //   country={country}
+        //   value={phone}
+        //   ref={this.setCodeInput}
+        //   onChange={this.handleChangePhone}
+        // />
+  }
+
   /**
    * Renders the screen to scan a QR code with an authenticator app.
    *
    * @returns {HTMLElement}
    */
   renderScanCodeScreen() {
-    const { view, phone, error, country } = this.state;
-    const { method } = this.props;
+    const { view } = this.state;
+    const { method, fieldLabel } = this.props;
     const { ss: { i18n } } = window;
 
-    if (view !== VIEWS.SET_PHONE) {
+    if (view !== VIEWS.SET_TO) {
       return null;
     }
 
     return (
       <div>
         <div className="mfa-totp__scan">
-          <p>{ i18n._t(
-            'TwilioRegister.INTRO',
-            'Register the mobile phone number to use for authentication.'
-          ) }{ this.renderSupportLink() }</p>
+          <p>{i18n.inject(
+            i18n._t(
+              'OTPAuthenticatorRegister.INTRO',
+              'Register the {label} to use for authentication.'
+            ),
+            { label: fieldLabel }
+          )}{ this.renderSupportLink() }</p>
 
           <div className="mfa-totp__scan-code">
             <div className="mfa-totp__scan-left">
-              <label htmlFor="phone" className="control-label">{ i18n._t('TwilioRegister.PHONE', 'Mobile phone') }</label>
-              <PhoneInput
-                country={country}
-                value={phone}
-                ref={this.setCodeInput}
-                onChange={this.handleChangePhone}
-              />
-              {error && <div className="help-block">{error}</div>}
+              { this.renderField() }
             </div>
 
             {method.thumbnail && (
@@ -217,7 +291,7 @@ class Register extends Component {
 
     return (
       <a href={supportLink} target="_blank" rel="noopener noreferrer">
-        {supportText || i18n._t('TwilioRegister.HOW_TO_USE', 'How to use authenticator apps.')}
+        {supportText || i18n._t('OTPAuthenticatorRegister.HOW_TO_USE', 'How to use authenticator apps.')}
       </a>
     );
   }
@@ -236,7 +310,7 @@ class Register extends Component {
         className="mfa-actions__action mfa-actions__action--back btn btn-secondary"
         onClick={this.handleBackToScan}
       >
-        { i18n._t('TwilioRegister.BACK', 'Back') }
+        { i18n._t('OTPAuthenticatorRegister.BACK', 'Back') }
       </button>
     );
   }
@@ -248,28 +322,27 @@ class Register extends Component {
    * @returns {HTMLElement}
    */
   renderValidateCodeScreen() {
-    const { error, view, obfuscatedPhone } = this.state;
-    const { TwilioVerifyComponent, onCompleteRegistration, errors } = this.props;
+    const { error, view, obfuscatedTo } = this.state;
+    const { OTPAuthenticatorVerifyComponent, onCompleteRegistration, errors } = this.props;
 
     if (view !== VIEWS.VALIDATE || errors.length) {
       return null;
     }
 
-    // todo pass phone to verify screen,
-    // phone value gets reset on screen switch
+    console.log('renderValidateCodeScreen::obfuscatedTo', obfuscatedTo);
 
     const verifyProps = {
       ...this.props,
       // Override the error prop to come from the state instead of props
       error,
-      obfuscatedPhone,
+      obfuscatedTo,
       moreOptionsControl: this.renderBackButtonForVerify(),
       // Renaming registration callback so it fits in the Verify context
       onCompleteVerification: onCompleteRegistration,
       onCompleteRegistration: null,
     };
 
-    return <TwilioVerifyComponent {...verifyProps} />;
+    return <OTPAuthenticatorVerifyComponent {...verifyProps} />;
   }
 
   render() {
@@ -290,7 +363,7 @@ Register.propTypes = {
   errors: PropTypes.arrayOf(PropTypes.string),
   method: PropTypes.object.isRequired,
   uri: PropTypes.string.isRequired,
-  TwilioVerifyComponent: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
+  OTPAuthenticatorVerifyComponent: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 };
 
 Register.defaultProps = {
@@ -298,14 +371,14 @@ Register.defaultProps = {
   errors: [],
 };
 
-Register.displayName = 'TwilioRegister';
+Register.displayName = 'OTPAuthenticatorRegister';
 
 export { Register as Component };
 
 export default inject(
-  ['TwilioVerify'],
-  (TwilioVerifyComponent) => ({
-    TwilioVerifyComponent,
+  ['OTPAuthenticatorVerify'],
+  (OTPAuthenticatorVerifyComponent) => ({
+    OTPAuthenticatorVerifyComponent,
   }),
   () => 'MFA.Register'
 )(Register);

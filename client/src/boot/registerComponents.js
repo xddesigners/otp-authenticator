@@ -1,10 +1,10 @@
 import Injector from 'lib/Injector'; // eslint-disable-line
-import Verify from 'components/Twilio/Verify';
-import Register from 'components/Twilio/Register';
+import Verify from 'components/OTPAuthenticator/Verify';
+import Register from 'components/OTPAuthenticator/Register';
 
 export default () => {
   Injector.component.registerMany({
-    TwilioRegister: Register,
-    TwilioVerify: Verify,
+    'OTPAuthenticatorRegister': Register,
+    'OTPAuthenticatorVerify': Verify,
   });
 };
