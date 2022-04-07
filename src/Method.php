@@ -6,6 +6,7 @@ namespace XD\OTPAuthenticator;
 
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\MFA\Method\Handler\VerifyHandlerInterface;
 use SilverStripe\MFA\Method\Handler\RegisterHandlerInterface;
 use SilverStripe\MFA\Method\MethodInterface;
@@ -73,22 +74,16 @@ class Method implements MethodInterface
 
     public function getThumbnail(): string
     {
-        return '/otp-authenticator/client/dist/images/otp.svg';
-
-        // return ModuleLoader::getModule('xddesigners/otp-authenticator')
-        //     ->getResource('client/dist/images/otp.svg')
-        //     ->getURL();
+        return ModuleLoader::getModule('xddesigners/otp-authenticator')
+            ->getResource('client/dist/images/otp.svg')
+            ->getURL();
     }
 
     public function applyRequirements(): void
     {
-        Requirements::javascript('/otp-authenticator/client/dist/js/bundle.js?m='.time());
-        Requirements::css('/otp-authenticator/client/dist/styles/bundle.css');
-        Requirements::add_i18n_javascript('/otp-authenticator/client/lang');
-
-        // Requirements::javascript('xddesigners/otp-authenticator: client/dist/js/bundle.js');
-        // Requirements::css('xddesigners/otp-authenticator: client/dist/styles/bundle.css');
-        // Requirements::add_i18n_javascript('xddesigners/otp-authenticator: client/lang');
+        Requirements::javascript('xddesigners/otp-authenticator: client/dist/js/bundle.js');
+        Requirements::css('xddesigners/otp-authenticator: client/dist/styles/bundle.css');
+        Requirements::add_i18n_javascript('xddesigners/otp-authenticator: client/lang');
     }
 
     public function isAvailable(): bool
