@@ -78,6 +78,10 @@ class RegisterHandler implements RegisterHandlerInterface
             if ($sendTo instanceof OTPSendTo) {
                 $to = $sendTo->getTo();
                 $$additional = $sendTo->getAdditional();
+                $store->addState([
+                    'sendTo' => $to,
+                    'additional' => $additional
+                ]);
             }
         }
 

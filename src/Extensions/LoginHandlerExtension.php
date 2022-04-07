@@ -64,8 +64,8 @@ class LoginHandlerExtension extends Extension
         }
 
         $to = $data['sendTo'];
-        $additionalData = $data['additional'];
-        if (!$sendProvider->validate($to, $additionalData)) {
+        $additional = $data['additional'];
+        if (!$sendProvider->validate($to, $additional)) {
             return $this->owner->jsonResponse([
                 'error' => _t(Method::class . '.INVALID_TO', "No valid {fieldLabel} provided", null, [
                     'fieldLabel' => $fieldLabel
@@ -73,16 +73,9 @@ class LoginHandlerExtension extends Extension
             ]);
         }
 
-        // store the field value
-        // if ($member) {
-        //     $member->OTPSend = $to;
-        //     $member->write();
-        // }
-        
-        // TODO: TEST store the send addr in the registerd method ?
         $store->addState([
             'sendTo' => $to,
-            'additional' => $additionalData
+            'additional' => $additional
         ]);
         
         // get the totp code
