@@ -15,8 +15,10 @@ use SilverStripe\MFA\Method\Handler\RegisterHandlerInterface;
 use SilverStripe\MFA\Service\MethodRegistry;
 use SilverStripe\MFA\State\Result;
 use SilverStripe\MFA\Store\StoreInterface;
+use SilverStripe\Security\Security;
 use XD\OTPAuthenticator\Method;
 use XD\OTPAuthenticator\TOTPAware;
+use XD\OTPAuthenticator\Types\OTPSendTo;
 
 /**
  * Handles registration requests using a time-based one-time password (TOTP) with the silverstripe/mfa module.
@@ -65,9 +67,19 @@ class RegisterHandler implements RegisterHandlerInterface
         $state = $store->getState();
         $sendProvider = $method->getSendProvider();
         $enabled = $sendProvider->enabled();
-        
+
         $to = isset($state['sendTo']) ? $state['sendTo'] : null;
         $additional = isset($state['additional']) ? $state['additional'] : [];        
+
+        // Allow method to pass an exisiting send to address
+        $member = $store->getMember() ?: Security::getCurrentUser();
+        if ($member && $member->hasMethod('otpSendTo')) {
+            $sendTo = $member->otpSendTo();
+            if ($sendTo instanceof OTPSendTo) {
+                $to = $sendTo->getTo();
+                $$additional = $sendTo->getAdditional();
+            }
+        }
 
         // Validate the to addr and send the code
         if ($to && $sendProvider->validate($to, $additional)) {

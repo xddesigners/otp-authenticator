@@ -7,6 +7,8 @@
         "CMS",
         "mfa",
         "2fa",
+        "sms",
+        "smstools",
         "twilio",
         "authy",
         "security",
