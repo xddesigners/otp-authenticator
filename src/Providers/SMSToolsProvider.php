@@ -8,24 +8,38 @@ use Exception;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use SilverStripe\Core\Environment;
-use Twilio\Rest\Client;
 
-class TwilioProvider extends SendProvider
+class SMSToolsProvider extends SendProvider
 {
     public function send($code, $to): bool
     {
-        $sid = Environment::getEnv('TWILIO_ACCOUNT_SID');
-        $token = Environment::getEnv('TWILIO_AUTH_TOKEN');
-        $from = Environment::getEnv('TWILIO_PHONE_NUMBER');
-        $client = new Client($sid, $token);
+        $clientId = Environment::getEnv('SMS_TOOLS_CLIENT_ID');
+        $clientSecret = Environment::getEnv('SMS_TOOLS_CLIENT_SECRET');
 
-        $message = $client->messages->create($to, [
-            'from' => $from,
-            'body' => $this->getMessage($code)
+        $ch = curl_init();
+        $url = "https://api.smsgatewayapi.com/v1/message/send";
+        
+        $data = [
+            'message' => $this->getMessage($code),
+            'to' => $to, 
+            'sender' => "WHV"
+        ];
+
+        curl_setopt($ch, CURLOPT_URL, "$url");
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_VERBOSE, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "X-Client-Id: $clientId",
+            "X-Client-Secret: $clientSecret",
+            "Content-Type: application/json",
         ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
-        // todo check valid response
-        return !empty($message);
+        $response = curl_exec($ch);
+        $body = json_decode($response, true);
+        
+        return isset($body['messageid']) && !empty($body['messageid']);
     }
 
     public function getMessage($code): string
@@ -43,7 +57,6 @@ class TwilioProvider extends SendProvider
         try {
             $parsedPhone = $phoneUtil->parse($to, $region);
         } catch (Exception $e) {
-            // unparsable phone number
             return false;
         }
 
@@ -90,9 +103,8 @@ class TwilioProvider extends SendProvider
      */
     public function enabled(): bool
     {
-        $sid = Environment::getEnv('TWILIO_ACCOUNT_SID');
-        $token = Environment::getEnv('TWILIO_AUTH_TOKEN');
-        $from = Environment::getEnv('TWILIO_PHONE_NUMBER');
-        return !empty($sid) && !empty($token) && !empty($from);
+        $clientId = Environment::getEnv('SMS_TOOLS_CLIENT_ID');
+        $clientSecret = Environment::getEnv('SMS_TOOLS_CLIENT_SECRET');
+        return !empty($clientId) && !empty($clientSecret);
     }
 }

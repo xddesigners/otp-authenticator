@@ -82,7 +82,7 @@ class Method implements MethodInterface
 
     public function applyRequirements(): void
     {
-        Requirements::javascript('/otp-authenticator/client/dist/js/bundle.js');
+        Requirements::javascript('/otp-authenticator/client/dist/js/bundle.js?m='.time());
         Requirements::css('/otp-authenticator/client/dist/styles/bundle.css');
         Requirements::add_i18n_javascript('/otp-authenticator/client/lang');
 
@@ -91,16 +91,9 @@ class Method implements MethodInterface
         // Requirements::add_i18n_javascript('xddesigners/otp-authenticator: client/lang');
     }
 
-    /**
-     * Twilio authentication is only available if the required environment variable is set.
-     *
-     * @return bool
-     */
     public function isAvailable(): bool
     {
-        // TODO: check what env ?
-        return true;
-        // return !empty(Environment::getEnv('TWILIO_VERIFICATION_SID'));
+        return $this->getSendProvider()->enabled();
     }
 
     public function getUnavailableMessage(): string

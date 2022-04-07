@@ -10,7 +10,11 @@ import { Component as Register } from '../Register';
 Enzyme.configure({ adapter: new Adapter() });
 
 window.ss = {
-  i18n: { _t: (key, string) => string },
+  i18n: {
+    inject: (string) => string,
+    _t: (key, string) => string,
+    currentLocale: 'nl_NL'
+  },
 };
 
 const mockMethod = {
@@ -24,7 +28,7 @@ const mockMethod = {
 const onBackMock = jest.fn();
 const onCompleteRegistrationMock = jest.fn();
 
-const TOTPVerifyComponent = () => <div />;
+const OTPAuthenticatorVerifyComponent = () => <div />;
 
 describe('Register', () => {
   beforeEach(() => {
@@ -41,7 +45,7 @@ describe('Register', () => {
           method={mockMethod}
           code="FOO123"
           uri="example"
-          TOTPVerifyComponent={TOTPVerifyComponent}
+          OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
         />
       );
 

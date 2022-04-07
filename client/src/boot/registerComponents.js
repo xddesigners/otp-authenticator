@@ -4,7 +4,7 @@ import Register from 'components/OTPAuthenticator/Register';
 
 export default () => {
   Injector.component.registerMany({
-    'OTPAuthenticatorRegister': Register,
-    'OTPAuthenticatorVerify': Verify,
+    OTPAuthenticatorRegister: Register,
+    OTPAuthenticatorVerify: Verify,
   });
 };

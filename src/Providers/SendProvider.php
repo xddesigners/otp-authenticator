@@ -20,7 +20,7 @@ abstract class SendProvider
     /**
      * Validate the send to address
      */
-    abstract public function validate($to): bool;
+    abstract public function validate($to, $data): bool;
     
     /**
      * Add a regex to validate the input on the frond end

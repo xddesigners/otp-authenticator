@@ -8,17 +8,11 @@ use Exception;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use SilverStripe\Control\HTTPRequest;
-use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\Core\Injector\Injector;
-use SilverStripe\MFA\Exception\AuthenticationFailedException;
 use SilverStripe\MFA\Method\Handler\VerifyHandlerInterface;
 use SilverStripe\MFA\Model\RegisteredMethod;
-use SilverStripe\MFA\Service\EncryptionAdapterInterface;
 use SilverStripe\MFA\State\Result;
 use SilverStripe\MFA\Store\StoreInterface;
-use SilverStripe\Security\Security;
-use Twilio\Rest\Client;
 use XD\OTPAuthenticator\Method;
 use XD\OTPAuthenticator\TOTPAware;
 
@@ -56,22 +50,16 @@ class VerifyHandler implements VerifyHandlerInterface
             ];
         }
 
-        $member = $store->getMember() ?: Security::getCurrentUser();
-        if (!$member) {
-            return [
-                'enabled' => false
-            ];
-        }
-
         $secret = $this->decryptSecrey($data['secret']);
         $this->storeSecret($store, $secret);
 
         $sendProvider = $method->getSendProvider();
         $enabled = $sendProvider->enabled();
-        $to = $member->getOTPSendTo();
+        $to = isset($data['sendTo']) ? $data['sendTo'] : null;
+        $additional = isset($data['additional']) ? $data['additional'] : [];
 
-        // Validate the to addr and send the code
-        if ($sendProvider->validate($to)) {
+        // Validate the send to address and send the code
+        if ($to && $sendProvider->validate($to, $additional)) {
             $code = $this->getCode($store);
             try {
                 $sendProvider->send($code, $to);
@@ -79,7 +67,8 @@ class VerifyHandler implements VerifyHandlerInterface
                 $enabled = false;
                 $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
             }
-            
+        } else {
+            $enabled = false;
         }
 
         return [

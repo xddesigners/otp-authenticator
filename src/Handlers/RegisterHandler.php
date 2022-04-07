@@ -15,7 +15,6 @@ use SilverStripe\MFA\Method\Handler\RegisterHandlerInterface;
 use SilverStripe\MFA\Service\MethodRegistry;
 use SilverStripe\MFA\State\Result;
 use SilverStripe\MFA\Store\StoreInterface;
-use SilverStripe\Security\Security;
 use XD\OTPAuthenticator\Method;
 use XD\OTPAuthenticator\TOTPAware;
 
@@ -55,39 +54,36 @@ class RegisterHandler implements RegisterHandlerInterface
         $method = MethodRegistry::singleton()->getMethodByURLSegment($methodSegment);
         
         if (!$method || !$method instanceof Method) {
-            // throw error
             return [
-                'error' => 'wrong method',
                 'enabled' => false
             ];
         }
 
-        $member = $store->getMember() ?: Security::getCurrentUser();
-        if (!$member) {
-            return [
-                'enabled' => false
-            ];
-        }
-        
         // Store the secret used by the code generator
         $this->storeSecret($store);
-
+        
+        $state = $store->getState();
         $sendProvider = $method->getSendProvider();
         $enabled = $sendProvider->enabled();
-        $to = $member->getOTPSendTo();
+        
+        $to = isset($state['sendTo']) ? $state['sendTo'] : null;
+        $additional = isset($state['additional']) ? $state['additional'] : [];        
 
         // Validate the to addr and send the code
-        if ($to && $sendProvider->validate($to)) {
+        if ($to && $sendProvider->validate($to, $additional)) {
             $code = $this->getCode($store);
             try {
-                $sendProvider->send($code, $to);
+                $sent = $sendProvider->send($code, $to);
             } catch (Exception $ex) {
                 $enabled = false;
                 $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
             }
-            
-        }
 
+        } else {
+            // validation failed, let user set new number
+            $to = '';
+        }
+        
         return [
             'enabled' => $enabled,
             'obfuscatedTo' => $sendProvider->obfuscateTo($to),
@@ -95,7 +91,6 @@ class RegisterHandler implements RegisterHandlerInterface
             'fieldLabel' => $sendProvider->getFieldLabel(),
             'fieldValidate' => $sendProvider->getFieldValidate(),
             'codeLength' => $method->getCodeLength(),
-            // 'defaultCountry' => $method->getDefaultCountry(), // check if needed ?
         ];
     }
 
@@ -120,11 +115,15 @@ class RegisterHandler implements RegisterHandlerInterface
         }
 
         // Encrypt the TOTP secret before storing it
-        $secret = $store->getState()['secret'];
+        $state = $store->getState();
+        $secret = $state['secret'];
         $secret = $this->encryptSecrey($secret);
 
-        // TODO: TEST store the send to in the registered method instead of the member ?
-        return Result::create()->setContext(['secret' => $secret]);
+        return Result::create()->setContext([
+            'secret' => $secret,
+            'sendTo' => $state['sendTo'],
+            'additional' => $state['additional'],
+        ]);
     }
 
     public function getDescription(): string

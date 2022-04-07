@@ -12,7 +12,7 @@ const VIEWS = {
 };
 
 /**
- * This component provides the user interface for registering one-time time-based passwords (TOTP)
+ * This component provides the user interface for registering one-time passwords (OTP)
  * with a user. cc
  */
 class Register extends Component {
@@ -25,7 +25,6 @@ class Register extends Component {
     const view = obfuscatedTo ? VIEWS.VALIDATE : VIEWS.SET_TO;
 
     this.state = {
-      // country: defaultCountry,
       obfuscatedTo,
       sendTo: '',
       view,
@@ -40,6 +39,8 @@ class Register extends Component {
     this.handleBack = this.handleBack.bind(this);
     this.handleBackToScan = this.handleBackToScan.bind(this);
     this.handleNext = this.handleNext.bind(this);
+    this.handleChangeTextField = this.handleChangeTextField.bind(this);
+    this.handleChangePhoneField = this.handleChangePhoneField.bind(this);
     this.handleChangeSendTo = this.handleChangeSendTo.bind(this);
   }
 
@@ -49,13 +50,26 @@ class Register extends Component {
     }
   }
 
-  handleChangeSendTo(e) {
+  handleChangeTextField(e) {
+    const value = e.target.value;
+    this.handleChangeSendTo(value);
+  }
+
+  handleChangePhoneField(value, country) {
+    this.setState({
+      additional: {
+        region: country.countryCode
+      }
+    });
+
+    this.handleChangeSendTo(value);
+  }
+
+  handleChangeSendTo(value) {
     const { fieldValidate, fieldLabel } = this.props;
     const { ss: { i18n } } = window;
 
-    const value = e.target.value;
     const regex = new RegExp(fieldValidate);
-
     const result = regex.test(value);
     const error = i18n.inject(
       i18n._t('OTPAuthenticatorVerify.ERROR_FIELD', 'Invalid {field} value'),
@@ -65,14 +79,12 @@ class Register extends Component {
     if (!result) {
       this.setState({
         error,
-        sendTo: value,
-        // country: country.countryCode
+        sendTo: value
       });
     } else {
       this.setState({
         error: null,
-        sendTo: value,
-        // country: country.countryCode
+        sendTo: value
       });
     }
   }
@@ -98,10 +110,8 @@ class Register extends Component {
    * After user has scanned the QR code, handle the transition to the verify screen
    */
   handleNext() {
-    const { sendTo } = this.state;
-    const body = JSON.stringify({ sendTo });
-
-    // TODO: check if we need country for phone
+    const { sendTo, additional } = this.state;
+    const body = JSON.stringify({ sendTo, additional });
     api('mfa/otp/registerto', 'POST', body).then(response => response.json().then(result => {
       const { error, obfuscatedTo, view } = result;
       if (error && error.length) {
@@ -125,7 +135,7 @@ class Register extends Component {
    * @returns {HTMLElement}
    */
   renderActionsMenu() {
-    const { sendTo } = this.state;
+    const { sendTo, error } = this.state;
     const { ss: { i18n } } = window;
 
     return (
@@ -135,7 +145,7 @@ class Register extends Component {
             type="button"
             className="btn btn-primary"
             onClick={this.handleNext}
-            disabled={!sendTo}
+            disabled={!sendTo || error}
           >
             { i18n._t('OTPAuthenticatorRegister.NEXT', 'Next') }
           </button>
@@ -175,12 +185,9 @@ class Register extends Component {
 
   renderField() {
     const { error, sendTo } = this.state;
-    // const { fieldLabel } = this.props;
     const { fieldType, fieldLabel } = this.props;
-    // const fieldType = 'phone';
-    // validate field type
-
-    // get country from window ?
+    const { ss: { i18n } } = window;
+    const country = i18n.currentLocale.split('_')[0];
 
     return (
       <div className="field">
@@ -191,17 +198,22 @@ class Register extends Component {
             className="text"
             value={sendTo}
             ref={this.setSendToInput}
-            onChange={this.handleChangeSendTo}
+            onChange={this.handleChangeTextField}
             type="email"
           />
         )}
 
         { fieldType === 'phone' && (
           <PhoneInput
-            // country={country}
+            country={country}
             value={sendTo}
             // ref={this.setSendToInput}
-            onChange={this.handleChangeSendTo}
+            onChange={this.handleChangePhoneField}
+            inputProps={{
+              name: 'phone',
+              required: true,
+              autoFocus: true
+            }}
           />
         )}
 
@@ -211,7 +223,7 @@ class Register extends Component {
             className="text"
             value={sendTo}
             ref={this.setSendToInput}
-            onChange={this.handleChangeSendTo}
+            onChange={this.handleChangeTextField}
             type="text"
           />
         )}
@@ -219,13 +231,6 @@ class Register extends Component {
         { error && <div className="help-block">{error}</div> }
       </div>
     );
-
-    //   <PhoneInput
-        //   country={country}
-        //   value={phone}
-        //   ref={this.setCodeInput}
-        //   onChange={this.handleChangePhone}
-        // />
   }
 
   /**
@@ -328,8 +333,6 @@ class Register extends Component {
     if (view !== VIEWS.VALIDATE || errors.length) {
       return null;
     }
-
-    console.log('renderValidateCodeScreen::obfuscatedTo', obfuscatedTo);
 
     const verifyProps = {
       ...this.props,

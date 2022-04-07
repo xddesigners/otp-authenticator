@@ -10,10 +10,8 @@ SilverStripe\MFA\Service\MethodRegistry:
 SilverStripe\Core\Injector\Injector:
   XD\OTPAuthenticator\Providers\SendProvider:
     class: XD\OTPAuthenticator\Providers\EmailProvider
-
-SilverStripe\Security\Member:
-  extensions:
-    - XD\OTPAuthenticator\Extensions\MemberExtension
+    # class: XD\OTPAuthenticator\Providers\TwilioProvider
+    # class: XD\OTPAuthenticator\Providers\SMSToolsProvider
 
 SilverStripe\MFA\Authenticator\LoginHandler:
   extensions:

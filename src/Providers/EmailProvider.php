@@ -56,7 +56,7 @@ class EmailProvider extends SendProvider
         return trim(substr($to, 0, $show)) . $hidden . trim(substr($to, -$afterAt));
     }
 
-    public function validate($to): bool
+    public function validate($to, $data): bool
     {
         return Email::is_valid_address($to);
     }

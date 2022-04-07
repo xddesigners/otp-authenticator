@@ -6,8 +6,8 @@ import classnames from 'classnames';
 import api from 'lib/api'; // eslint-disable-line
 
 /**
- * This component provides the user interface for logging in with a one-time time-based password
- * (TOTP) for a user.
+ * This component provides the user interface for logging in with a one-time password
+ * (OTP) for a user.
  */
 class Verify extends Component {
   constructor(props) {

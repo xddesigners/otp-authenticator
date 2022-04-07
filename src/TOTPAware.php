@@ -20,9 +20,7 @@ trait TOTPAware
     protected function storeSecret(StoreInterface $store, string $secret = null): void
     {
         if (!$secret) {
-            $member = $store->getMember() ?: Security::getCurrentUser();
-            $uniqueField = $member->config()->get('unique_identifier_field');
-            $secret = $this->generateSecret($member->{$uniqueField});
+            $secret = $this->generateSecret();
         }
 
         $store->setState([
@@ -58,11 +56,10 @@ trait TOTPAware
      *
      * @return string
      */
-    protected function generateSecret(string $uniqueIdentifier): string
+    protected function generateSecret(): string
     {
         $length = Method::config()->get('secret_length');
-        // TODO: test with random string since the secret is stored on the registered method
-        return substr(trim(Base32::encodeUpper($uniqueIdentifier), '='), 0, $length);
+        return substr(trim(Base32::encodeUpper(random_bytes(64)), '='), 0, $length);
     }
 
     protected function encryptSecrey(string $secret): string
