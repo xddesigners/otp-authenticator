@@ -1,13 +1,30 @@
 en:
-  XD\Twilio\Method:
-    NAME: 'SMS code'
+  XD\OTPAuthenticator\Method:
     NOT_CONFIGURED: 'This method has not been configured yet.'
-  XD\Twilio\RegisterHandler:
-    DESCRIPTION: 'Authenticate with an code sent to your mobile phone'
+    INVALID_METHOD: 'This endpoint should only be used by the OTP method'
+    NO_TO: "No {fieldLabel} provided"
+    INVALID_TO: "No valid {fieldLabel} provided"
+    NO_MEMBER: "We couldn't find a {fieldLabel} in your account"
+  XD\OTPAuthenticator\Handlers\RegisterHandler:
+    DESCRIPTION: 'Use an one time password to access your account'
     INVALID_CODE: 'Provided code was not valid'
-    SUPPORT_LINK_DESCRIPTION: 'How to use an SMS code.'
-    INVALID_PHONE: 'Provided phone number was not valid'
-  XD\Twilio\VerifyHandler:
+    SUPPORT_LINK_DESCRIPTION: 'How to use an one time password?'
+  XD\OTPAuthenticator\Handlers\VerifyHandler:
     INVALID_CODE: 'Invalid code'
-  XD\Twilio\LoginHandlerExtension:
-    COULD_NOT_SEND_CODE: 'Could not send code'
+  XD\OTPAuthenticator\Extensions\LoginHandlerExtension:
+    COULD_NOT_SEND_CODE: "Could not send code"
+  XD\OTPAuthenticator\Providers\EmailProvider:
+    NAME: 'Email code'
+  XD\OTPAuthenticator\Providers\SendProvider:
+    NAME: 'One time password'
+    Subject: 'Your authentication code for {site}'
+    Message: 'Your authentication code is: <strong>{code}</strong>'
+    FieldLabel: 'Email'
+  XD\OTPAuthenticator\Providers\SMSToolsProvider:
+    NAME: 'SMS code'
+    Message: 'Your authentication code is: {code}'
+    FieldLabel: 'Phone number'
+  XD\OTPAuthenticator\Providers\TwilioProvider:
+    NAME: 'SMS code'
+    Message: 'Your authentication code is: {code}'
+    FieldLabel: 'Phone number'

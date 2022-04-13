@@ -146,7 +146,7 @@ class RegisterHandler implements RegisterHandlerInterface
     {
         return _t(
             __CLASS__ . '.DESCRIPTION',
-            'Authenticate with an one time password'
+            'Use an one time password to access your account'
         );
     }
 

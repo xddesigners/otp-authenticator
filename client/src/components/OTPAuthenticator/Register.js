@@ -296,7 +296,7 @@ class Register extends Component {
 
     return (
       <a href={supportLink} target="_blank" rel="noopener noreferrer">
-        {supportText || i18n._t('OTPAuthenticatorRegister.HOW_TO_USE', 'How to use authenticator apps.')}
+        {supportText || i18n._t('OTPAuthenticatorRegister.HOW_TO_USE', 'How to use one-time passwords.')}
       </a>
     );
   }

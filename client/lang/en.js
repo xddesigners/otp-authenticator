@@ -6,15 +6,13 @@ if (typeof(ss) === 'undefined' || typeof(ss.i18n) === 'undefined') {
   }
 } else {
   ss.i18n.addDictionary('en', {
-    "TwilioRegister.NEXT": "Next",
-    "TwilioRegister.BACK": "Back",
-    "TwilioRegister.INTRO": "Register the mobile phone number to use for authentication.",
-    "TwilioRegister.HOW_TO_USE": "How to use authenticator app.",
-    "TwilioVerify.NEXT": "Next",
-    "TwilioVerify.HOW_TO_USE": "How to use authenticator app.",
-    "TwilioVerify.VERIFY": "Use the code that was sent to",
-    "TwilioVerify.ENTER_CODE": "Enter {length}-digit code",
-    "TwilioRegister.PHONE": "Mobile phone",
-    "TwilioVerify.RESEND": "Resend code"
+    'OTPAuthenticatorRegister.NEXT': 'Next',
+    'OTPAuthenticatorRegister.BACK': 'Back',
+    'OTPAuthenticatorRegister.INTRO': 'Register the {label} to use for authentication.',
+    'OTPAuthenticatorRegister.HOW_TO_USE': 'How to use one-time passwords.',
+    'OTPAuthenticatorVerify.RESEND': 'Resend code',
+    'OTPAuthenticatorVerify.ERROR_FIELD': 'Invalid {field} value',
+    'OTPAuthenticatorVerify.VERIFY': 'Use the code that was sent to',
+    'OTPAuthenticatorVerify.ENTER_CODE': 'Enter {length}-digit code'
 });
 }

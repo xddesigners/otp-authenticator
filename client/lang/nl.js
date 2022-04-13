@@ -6,15 +6,13 @@ if (typeof(ss) === 'undefined' || typeof(ss.i18n) === 'undefined') {
   }
 } else {
   ss.i18n.addDictionary('nl', {
-    "TwilioRegister.NEXT": "Volgende",
-    "TwilioRegister.BACK": "Vorige",
-    "TwilioRegister.INTRO": "Registreer het mobiele nummer welke je wilt gebruiken voor authenticatie.",
-    "TwilioRegister.HOW_TO_USE": "Hoe gebruik je een authenticator app?",
-    "TwilioVerify.NEXT": "Volgende",
-    "TwilioVerify.HOW_TO_USE": "Hoe gebruik je een authenticator app?",
-    "TwilioVerify.VERIFY": "Gebruik de code welke is verstuurd naar",
-    "TwilioVerify.ENTER_CODE": "Voer een {length}-cijferige code in",
-    "TwilioRegister.PHONE": "Mobiel nummer",
-    "TwilioVerify.RESEND": "Verstuur code opnieuw"
+    'OTPAuthenticatorRegister.NEXT': 'Volgende',
+    'OTPAuthenticatorRegister.BACK': 'Vorige',
+    'OTPAuthenticatorRegister.INTRO': 'Registreer het {label} welke je wilt gebruiken voor authenticatie.',
+    'OTPAuthenticatorRegister.HOW_TO_USE': 'Hoe gebruik je een eenmalig wachtwoord?',
+    'OTPAuthenticatorVerify.RESEND': 'Verstuur code opnieuw',
+    'OTPAuthenticatorVerify.ERROR_FIELD': 'Foutief {field}',
+    'OTPAuthenticatorVerify.VERIFY': 'Gebruik de code welke is verstuurd naar',
+    'OTPAuthenticatorVerify.ENTER_CODE': 'Voer een {length}-cijferige code in'
 });
 }

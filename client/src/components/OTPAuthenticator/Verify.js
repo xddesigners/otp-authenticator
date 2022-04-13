@@ -115,7 +115,7 @@ class Verify extends Component {
             disabled={isNextDisabled}
             onClick={this.handleSubmit}
           >
-            { i18n._t('OTPAuthenticatorVerify.NEXT', 'Next') }
+            { i18n._t('OTPAuthenticatorRegister.NEXT', 'Next') }
           </button>
         </li>
         <li className="mfa-action-list__item">
@@ -154,7 +154,7 @@ class Verify extends Component {
 
     return (
       <a href={supportLink} target="_blank" rel="noopener noreferrer">
-        {supportText || i18n._t('OTPAuthenticatorVerify.HOW_TO_USE', 'How to use authenticator apps.')}
+        {supportText || i18n._t('OTPAuthenticatorVerify.HOW_TO_USE', 'How to use one-time passwords.')}
       </a>
     );
   }

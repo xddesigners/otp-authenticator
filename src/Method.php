@@ -49,7 +49,7 @@ class Method implements MethodInterface
 
     public function getName(): string
     {
-        return _t(__CLASS__ . '.NAME', 'One time password');
+        return $this->getSendProvider()->getName();
     }
 
     public function getURLSegment(): string

@@ -146,7 +146,7 @@ describe('Verify', () => {
         />
       );
 
-      expect(wrapper.text()).not.toContain('How to use authenticator app');
+      expect(wrapper.text()).not.toContain('How to use one-time passwords');
     });
 
     it('renders a support link for the provided method on both screens', () => {
@@ -157,7 +157,7 @@ describe('Verify', () => {
         />
       );
 
-      expect(wrapper.text()).toContain('How to use authenticator app');
+      expect(wrapper.text()).toContain('How to use one-time passwords');
     });
   });
 

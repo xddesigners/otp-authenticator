@@ -49,4 +49,12 @@ abstract class SendProvider
      * Register the field label
      */
     abstract public function getFieldLabel(): string;
+
+    /**
+     * The name is show in the tile selection
+     */
+    public function getName(): string
+    {
+        return _t(__CLASS__ . '.NAME', 'One time password');
+    }
 }

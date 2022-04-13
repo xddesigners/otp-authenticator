@@ -71,6 +71,11 @@ class EmailProvider extends SendProvider
         return _t(__CLASS__ . '.FieldLabel', 'Email');
     }
 
+    public function getName(): string
+    {
+        return _t(__CLASS__ . '.NAME', 'Email code');
+    }
+
     public function getFieldValidate(): string
     {
         return '.+@.+\..+';

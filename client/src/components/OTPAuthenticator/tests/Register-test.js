@@ -64,7 +64,7 @@ describe('Register', () => {
           code="FOO123"
           uri="example"
           errors={['Something went wrong', 'I am a unit test']}
-          TOTPVerifyComponent={TOTPVerifyComponent}
+          OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
         />
       );
 
@@ -82,7 +82,7 @@ describe('Register', () => {
   //         method={mockMethod}
   //         code="FOO123"
   //         uri="example"
-  //         TOTPVerifyComponent={TOTPVerifyComponent}
+  //         OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
   //       />
   //     );
 
@@ -102,7 +102,7 @@ describe('Register', () => {
           method={mockMethod}
           code="FOO123"
           uri="example"
-          TOTPVerifyComponent={TOTPVerifyComponent}
+          OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
         />
       );
 
@@ -118,7 +118,7 @@ describe('Register', () => {
           method={mockMethod}
           code="FOO123"
           uri="example"
-          TOTPVerifyComponent={TOTPVerifyComponent}
+          OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
         />
       );
 
@@ -134,12 +134,12 @@ describe('Register', () => {
     //       method={mockMethod}
     //       code="FOO123"
     //       uri="example"
-    //       TOTPVerifyComponent={TOTPVerifyComponent}
+    //       OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
     //     />
     //   );
 
     //   wrapper.find('.mfa-action-list .btn').first().simulate('click');
-    //   expect(wrapper.find(TOTPVerifyComponent)).toHaveLength(1);
+    //   expect(wrapper.find(OTPAuthenticatorVerifyComponent)).toHaveLength(1);
     // });
   });
 
@@ -152,7 +152,7 @@ describe('Register', () => {
   //         method={mockMethod}
   //         code="FOO123"
   //         uri="example"
-  //         TOTPVerifyComponent={TOTPVerifyComponent}
+  //         OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
   //       />
   //     );
 
@@ -172,11 +172,11 @@ describe('Register', () => {
           }}
           code="FOO123"
           uri="example"
-          TOTPVerifyComponent={TOTPVerifyComponent}
+          OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
         />
       );
 
-      expect(wrapper.text()).not.toContain('How to use authenticator app');
+      expect(wrapper.text()).not.toContain('How to use one-time passwords');
     });
 
     it('renders a support link for the provided method on both screens', () => {
@@ -187,11 +187,11 @@ describe('Register', () => {
           method={mockMethod}
           code="FOO123"
           uri="example"
-          TOTPVerifyComponent={TOTPVerifyComponent}
+          OTPAuthenticatorVerifyComponent={OTPAuthenticatorVerifyComponent}
         />
       );
 
-      expect(wrapper.text()).toContain('How to use authenticator app');
+      expect(wrapper.text()).toContain('How to use one-time passwords');
     });
   });
 });

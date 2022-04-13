@@ -85,6 +85,11 @@ class TwilioProvider extends SendProvider
         return _t(__CLASS__ . '.FieldLabel', 'Phone number');
     }
 
+    public function getName(): string
+    {
+        return _t(__CLASS__ . '.NAME', 'sms code');
+    }
+
     /**
      * Check if the proper env files have been set
      */
