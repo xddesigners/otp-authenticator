@@ -38,7 +38,7 @@ class VerifyHandler implements VerifyHandlerInterface
 
     public function start(StoreInterface $store, RegisteredMethod $registeredMethod): array
     {
-        $data = json_decode((string) $registeredMethod->Data, true);
+        $data = json_decode((string)$registeredMethod->Data, true);
         if (!$data || !isset($data['secret'])) {
             throw new RuntimeException('TOTP secret is not available in the registered method data');
         }
@@ -46,7 +46,7 @@ class VerifyHandler implements VerifyHandlerInterface
         $method = $registeredMethod->getMethod();
         if (!$method instanceof Method) {
             return [
-                'enabled' => false
+                'enabled' => false,
             ];
         }
 
@@ -61,6 +61,7 @@ class VerifyHandler implements VerifyHandlerInterface
         // Validate the send to address and send the code
         if ($to && $sendProvider->validate($to, $additional)) {
             $code = $this->getCode($store);
+
             try {
                 $sendProvider->send($code, $to);
             } catch (Exception $ex) {
@@ -108,6 +109,7 @@ class VerifyHandler implements VerifyHandlerInterface
     public function setLogger(LoggerInterface $logger): VerifyHandler
     {
         $this->logger = $logger;
+
         return $this;
     }
 }

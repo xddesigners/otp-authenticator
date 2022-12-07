@@ -21,7 +21,7 @@ class TwilioProvider extends SendProvider
 
         $message = $client->messages->create($to, [
             'from' => $from,
-            'body' => $this->getMessage($code)
+            'body' => $this->getMessage($code),
         ]);
 
         // todo check valid response
@@ -32,6 +32,7 @@ class TwilioProvider extends SendProvider
     {
         $message = _t(__CLASS__ . '.Message', 'Your authentication code is: {code}', null, ['code' => $code]);
         $this->extend('updateMessage', $message);
+
         return $message;
     }
 
@@ -98,6 +99,7 @@ class TwilioProvider extends SendProvider
         $sid = Environment::getEnv('TWILIO_ACCOUNT_SID');
         $token = Environment::getEnv('TWILIO_AUTH_TOKEN');
         $from = Environment::getEnv('TWILIO_PHONE_NUMBER');
+
         return !empty($sid) && !empty($token) && !empty($from);
     }
 }

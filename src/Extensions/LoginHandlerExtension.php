@@ -23,7 +23,7 @@ class LoginHandlerExtension extends Extension
     // todo add methods to schema ?
     private static $url_handlers = [
         'POST mfa/otp/registerto' => 'registerOTPSendTo',
-        'GET mfa/otp/resendcode' => 'resendOTPCode'
+        'GET mfa/otp/resendcode' => 'resendOTPCode',
     ];
 
     private static $allowed_actions = [
@@ -45,9 +45,9 @@ class LoginHandlerExtension extends Extension
         if (!$method instanceof Method) {
             return $this->owner->jsonResponse([
                 'error' => _t(
-                    Method::class . '.INVALID_METHOD', 
-                    "This endpoint should only be used by the OTP method"
-                )
+                    Method::class . '.INVALID_METHOD',
+                    'This endpoint should only be used by the OTP method',
+                ),
             ]);
         }
 
@@ -57,9 +57,9 @@ class LoginHandlerExtension extends Extension
 
         if (!isset($data['sendTo'])) {
             return $this->owner->jsonResponse([
-                'error' => _t(Method::class . '.NO_TO', "No {fieldLabel} provided", null, [
-                    'fieldLabel' => $fieldLabel
-                ])
+                'error' => _t(Method::class . '.NO_TO', 'No {fieldLabel} provided', null, [
+                    'fieldLabel' => $fieldLabel,
+                ]),
             ]);
         }
 
@@ -67,17 +67,17 @@ class LoginHandlerExtension extends Extension
         $additional = $data['additional'];
         if (!$sendProvider->validate($to, $additional)) {
             return $this->owner->jsonResponse([
-                'error' => _t(Method::class . '.INVALID_TO', "No valid {fieldLabel} provided", null, [
-                    'fieldLabel' => $fieldLabel
-                ])
+                'error' => _t(Method::class . '.INVALID_TO', 'No valid {fieldLabel} provided', null, [
+                    'fieldLabel' => $fieldLabel,
+                ]),
             ]);
         }
 
         $store->addState([
             'sendTo' => $to,
-            'additional' => $additional
+            'additional' => $additional,
         ]);
-        
+
         // get the totp code
         $code = $this->getCode($store);
 
@@ -85,15 +85,15 @@ class LoginHandlerExtension extends Extension
             $sendProvider->send($code, $to);
         } catch (Exception $ex) {
             return $this->owner->jsonResponse([
-                'error' => _t(Method::class . '.INVALID_TO', "No valid {fieldLabel} provided", null, [
-                    'fieldLabel' => $fieldLabel
-                ])
+                'error' => _t(Method::class . '.INVALID_TO', 'No valid {fieldLabel} provided', null, [
+                    'fieldLabel' => $fieldLabel,
+                ]),
             ]);
         }
 
         return $this->owner->jsonResponse([
             'view' => 'VALIDATE_CODE',
-            'obfuscatedTo' => $sendProvider->obfuscateTo($to)
+            'obfuscatedTo' => $sendProvider->obfuscateTo($to),
         ]);
     }
 
@@ -110,9 +110,9 @@ class LoginHandlerExtension extends Extension
         if (!$method instanceof Method) {
             return $this->owner->jsonResponse([
                 'error' => _t(
-                    Method::class . '.INVALID_METHOD', 
-                    "This endpoint should only be used by the OTP method"
-                )
+                    Method::class . '.INVALID_METHOD',
+                    'This endpoint should only be used by the OTP method',
+                ),
             ]);
         }
 
@@ -122,8 +122,8 @@ class LoginHandlerExtension extends Extension
         if (!$member || !($to = $member->getOTPSendTo())) {
             return $this->owner->jsonResponse([
                 'error' => _t(Method::class . '.NO_MEMBER', "We couldn't find a {fieldLabel} in your account", null, [
-                    'fieldLabel' => $fieldLabel
-                ])
+                    'fieldLabel' => $fieldLabel,
+                ]),
             ]);
         }
 
@@ -134,15 +134,15 @@ class LoginHandlerExtension extends Extension
             $sent = $sendProvider->send($code, $to);
         } catch (Exception $ex) {
             return $this->owner->jsonResponse([
-                'error' => _t(Method::class . '.INVALID_TO', "No valid {fieldLabel} provided", null, [
-                    'fieldLabel' => $fieldLabel
-                ])
+                'error' => _t(Method::class . '.INVALID_TO', 'No valid {fieldLabel} provided', null, [
+                    'fieldLabel' => $fieldLabel,
+                ]),
             ]);
         }
 
         return $this->owner->jsonResponse(array_filter([
             'sent' => $sent,
-            'error' => !$sent ? _t(__CLASS__ . '.COULD_NOT_SEND_CODE', 'Could not send code') : null
+            'error' => !$sent ? _t(__CLASS__ . '.COULD_NOT_SEND_CODE', 'Could not send code') : null,
         ]));
     }
 

@@ -17,28 +17,28 @@ class SMSToolsProvider extends SendProvider
         $clientSecret = Environment::getEnv('SMS_TOOLS_CLIENT_SECRET');
 
         $ch = curl_init();
-        $url = "https://api.smsgatewayapi.com/v1/message/send";
-        
+        $url = 'https://api.smsgatewayapi.com/v1/message/send';
+
         $data = [
             'message' => $this->getMessage($code),
-            'to' => $to, 
-            'sender' => "WHV"
+            'to' => $to,
+            'sender' => 'WHV',
         ];
 
-        curl_setopt($ch, CURLOPT_URL, "$url");
+        curl_setopt($ch, CURLOPT_URL, "${url}");
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_VERBOSE, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "X-Client-Id: $clientId",
-            "X-Client-Secret: $clientSecret",
-            "Content-Type: application/json",
+            "X-Client-Id: ${clientId}",
+            "X-Client-Secret: ${clientSecret}",
+            'Content-Type: application/json',
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
         $response = curl_exec($ch);
         $body = json_decode($response, true);
-        
+
         return isset($body['messageid']) && !empty($body['messageid']);
     }
 
@@ -46,6 +46,7 @@ class SMSToolsProvider extends SendProvider
     {
         $message = _t(__CLASS__ . '.Message', 'Your authentication code is: {code}', null, ['code' => $code]);
         $this->extend('updateMessage', $message);
+
         return $message;
     }
 
@@ -110,6 +111,7 @@ class SMSToolsProvider extends SendProvider
     {
         $clientId = Environment::getEnv('SMS_TOOLS_CLIENT_ID');
         $clientSecret = Environment::getEnv('SMS_TOOLS_CLIENT_SECRET');
+
         return !empty($clientId) && !empty($clientSecret);
     }
 }
