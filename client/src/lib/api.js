@@ -4,7 +4,7 @@
  */
  const api = (endpoint, method = 'GET', body = undefined, headers = {}) => (
     fetch(
-        endpoint,
+        location.origin + location.pathname.replace(/(^|\/)[^\/]+\/?$/, '$1') + endpoint,
         {
             body,
             credentials: 'same-origin',
