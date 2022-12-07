@@ -77,7 +77,7 @@ class RegisterHandler implements RegisterHandlerInterface
             $sendTo = $member->otpSendTo();
             if ($sendTo instanceof OTPSendTo) {
                 $to = $sendTo->getTo();
-                $$additional = $sendTo->getAdditional();
+                $additional = $sendTo->getAdditional();
                 $store->addState([
                     'sendTo' => $to,
                     'additional' => $additional,
