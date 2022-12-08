@@ -51,25 +51,25 @@ class RegisterHandler implements RegisterHandlerInterface
     protected $logger;
 
     public function start(StoreInterface $store): array
-    {  
+    {
         $methodSegment = $store->getMethod();
         $method = MethodRegistry::singleton()->getMethodByURLSegment($methodSegment);
-        
+
         if (!$method || !$method instanceof Method) {
             return [
-                'enabled' => false
+                'enabled' => false,
             ];
         }
 
         // Store the secret used by the code generator
         $this->storeSecret($store);
-        
+
         $state = $store->getState();
         $sendProvider = $method->getSendProvider();
         $enabled = $sendProvider->enabled();
 
         $to = isset($state['sendTo']) ? $state['sendTo'] : null;
-        $additional = isset($state['additional']) ? $state['additional'] : [];        
+        $additional = isset($state['additional']) ? $state['additional'] : [];
 
         // Allow method to pass an exisiting send to address
         $member = $store->getMember() ?: Security::getCurrentUser();
@@ -77,10 +77,10 @@ class RegisterHandler implements RegisterHandlerInterface
             $sendTo = $member->otpSendTo();
             if ($sendTo instanceof OTPSendTo) {
                 $to = $sendTo->getTo();
-                $$additional = $sendTo->getAdditional();
+                $additional = $sendTo->getAdditional();
                 $store->addState([
                     'sendTo' => $to,
-                    'additional' => $additional
+                    'additional' => $additional,
                 ]);
             }
         }
@@ -88,18 +88,18 @@ class RegisterHandler implements RegisterHandlerInterface
         // Validate the to addr and send the code
         if ($to && $sendProvider->validate($to, $additional)) {
             $code = $this->getCode($store);
+
             try {
                 $sent = $sendProvider->send($code, $to);
             } catch (Exception $ex) {
                 $enabled = false;
                 $this->getLogger()->debug($ex->getMessage(), $ex->getTrace());
             }
-
         } else {
             // validation failed, let user set new number
             $to = '';
         }
-        
+
         return [
             'enabled' => $enabled,
             'obfuscatedTo' => $sendProvider->obfuscateTo($to),
@@ -116,8 +116,8 @@ class RegisterHandler implements RegisterHandlerInterface
      *
      * @param HTTPRequest $request
      * @param StoreInterface $store
-     * @return Result
      * @throws AuthenticationFailedException
+     * @return Result
      */
     public function register(HTTPRequest $request, StoreInterface $store): Result
     {
@@ -146,13 +146,13 @@ class RegisterHandler implements RegisterHandlerInterface
     {
         return _t(
             __CLASS__ . '.DESCRIPTION',
-            'Use an one time password to access your account'
+            'Use an one time password to access your account',
         );
     }
 
     public function getSupportLink(): string
     {
-        return (string) $this->config()->get('user_help_link');
+        return (string)$this->config()->get('user_help_link');
     }
 
     public function getSupportText(): string
@@ -180,6 +180,7 @@ class RegisterHandler implements RegisterHandlerInterface
     public function setLogger(LoggerInterface $logger): RegisterHandler
     {
         $this->logger = $logger;
+
         return $this;
     }
 }

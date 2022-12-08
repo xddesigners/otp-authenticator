@@ -3,16 +3,16 @@
 namespace XD\OTPAuthenticator\Extensions;
 
 use SilverStripe\Control\HTTPRequest;
-use SilverStripe\MFA\Authenticator\LoginHandler;
+use SilverStripe\MFA\Controller\AdminRegistrationController;
 
 /**
- * @property LoginHandler owner
+ * @property AdminRegistrationController owner
  */
-class LoginHandlerExtension extends OTPExtension
+class AdminRegistrationControllerExtension extends OTPExtension
 {
     private static $url_handlers = [
-        'POST mfa/otp/registerto' => 'handleRegisterTo',
-        'GET mfa/otp/resendcode' => 'handleResendCode',
+        'POST otp/registerto' => 'handleRegisterTo',
+        'GET otp/resendcode' => 'handleResendCode',
     ];
 
     private static $allowed_actions = [

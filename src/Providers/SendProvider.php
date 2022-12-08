@@ -14,14 +14,18 @@ abstract class SendProvider
 
     /**
      * Send the code
+     * @param mixed $code
+     * @param mixed $to
      */
     abstract public function send($code, $to): bool;
 
     /**
      * Validate the send to address
+     * @param mixed $to
+     * @param mixed $data
      */
     abstract public function validate($to, $data): bool;
-    
+
     /**
      * Add a regex to validate the input on the frond end
      */
@@ -34,11 +38,12 @@ abstract class SendProvider
 
     /**
      * Obfuscate the sent to address.
-     * So a user has a way to verify the sent address is correct 
+     * So a user has a way to verify the sent address is correct
      * but in a way an unallowed user couldn't make out the complete address
+     * @param mixed $to
      */
     abstract public function obfuscateTo($to): string;
-    
+
     /**
      * Register the field type to switch to.
      * Accepts phone, email, or text

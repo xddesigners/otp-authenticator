@@ -1,5 +1,5 @@
 ---
-Name: twilioauthenticatorconfig
+Name: OTPAuthenticator
 ---
 # Register the method
 SilverStripe\MFA\Service\MethodRegistry:
@@ -16,3 +16,6 @@ SilverStripe\Core\Injector\Injector:
 SilverStripe\MFA\Authenticator\LoginHandler:
   extensions:
     - XD\OTPAuthenticator\Extensions\LoginHandlerExtension
+SilverStripe\MFA\Controller\AdminRegistrationController:
+  extensions:
+    - XD\OTPAuthenticator\Extensions\AdminRegistrationControllerExtension
